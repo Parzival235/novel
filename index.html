@@ -1,1177 +1,862 @@
 <!DOCTYPE html>
 <html lang="vi" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="MoonNovel - trang web đọc truyện demo với tìm kiếm, lọc, bookmark, lịch sử đọc, ghi chú và trình đọc tuỳ chỉnh." />
-  <title>MoonNovel - Đọc truyện online</title>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --panel: #111c31;
-      --panel-soft: rgba(17, 28, 49, 0.92);
-      --panel-2: #17243d;
-      --panel-2-soft: rgba(23, 36, 61, 0.86);
-      --text: #e5eefc;
-      --muted: #99a8c4;
-      --border: rgba(255, 255, 255, 0.11);
-      --accent: #8b5cf6;
-      --accent-2: #22d3ee;
-      --danger: #fb7185;
-      --success: #34d399;
-      --warning: #fbbf24;
-      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-      --radius: 22px;
-      --reader-font-size: 19px;
-      --reader-line-height: 1.9;
-      --reader-font: Georgia, 'Times New Roman', serif;
-      --reader-bg: #101827;
-      --reader-text: #ecf3ff;
-      --reader-muted: rgba(236, 243, 255, 0.68);
-      --reader-panel: rgba(16, 24, 39, 0.94);
-      --reader-border: rgba(236, 243, 255, 0.14);
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NoveLite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+/* ════ VARIABLES ════ */
+:root{--bg:#0D0B09;--sf:#171410;--sf2:#201D19;--bd:#2A2520;--tx:#EDE5D8;--tx2:#9A8F80;--tx3:#524840;--ac:#E8622A;--acBg:#2A1610;--gr:#34A853;--pu:#8B5CF6;--nb:rgba(23,20,16,.95);--ov:rgba(0,0,0,.65);--pr:#E8622A;--r:12px;--rp:20px;--sh:0 2px 12px rgba(0,0,0,.45);--sh2:0 8px 32px rgba(0,0,0,.55);--f:'Be Vietnam Pro',-apple-system,sans-serif;--dp:'Playfair Display',serif}
+[data-theme="light"]{--bg:#F4F1EB;--sf:#FFF;--sf2:#EDE9E1;--bd:#E0DBD0;--tx:#1A160F;--tx2:#7A7060;--tx3:#B5A898;--ac:#CC4A18;--acBg:#FEF0EA;--gr:#1A6E30;--nb:rgba(255,255,255,.95);--ov:rgba(10,8,5,.5);--pr:#CC4A18;--sh:0 2px 8px rgba(0,0,0,.08);--sh2:0 8px 32px rgba(0,0,0,.1)}
+[data-theme="sepia"]{--bg:#F2E8D5;--sf:#FBF5E8;--sf2:#F0E4CA;--bd:#DDD0B5;--tx:#2D200E;--tx2:#8A6E50;--tx3:#C0A888;--ac:#8B3A1A;--acBg:#F2E0C8;--nb:rgba(251,245,232,.96);--ov:rgba(20,12,4,.55);--pr:#8B3A1A}
 
-    [data-theme="light"] {
-      --bg: #f6f7fb;
-      --panel: #ffffff;
-      --panel-soft: rgba(255, 255, 255, 0.94);
-      --panel-2: #eef2ff;
-      --panel-2-soft: rgba(238, 242, 255, 0.9);
-      --text: #172033;
-      --muted: #667085;
-      --border: rgba(15, 23, 42, 0.12);
-      --shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
-      --reader-bg: #fffaf0;
-      --reader-text: #1f2937;
-      --reader-muted: rgba(31, 41, 55, 0.68);
-      --reader-panel: rgba(255, 250, 240, 0.96);
-      --reader-border: rgba(31, 41, 55, 0.14);
-    }
+/* ════ RESET ════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:var(--f);background:var(--bg);color:var(--tx);min-height:100vh;transition:background .3s,color .3s;visibility:hidden}
+body.rdy{visibility:visible}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--f);cursor:pointer;border:none;background:none}
+img{display:block}
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+/* ════ LOADING SCREEN ════ */
+#loader{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
+#loader.hide{opacity:0;pointer-events:none}
+.ld-logo{font-family:var(--dp);font-size:2rem;font-weight:800;color:var(--ac)}
+.ld-spin{width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:lspin .7s linear infinite}
+@keyframes lspin{to{transform:rotate(360deg)}}
+.ld-txt{font-size:.78rem;color:var(--tx2)}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(139, 92, 246, 0.26), transparent 34rem),
-        radial-gradient(circle at top right, rgba(34, 211, 238, 0.2), transparent 34rem),
-        var(--bg);
-      transition: background 0.25s ease, color 0.25s ease;
-    }
+/* ════ ROUTING ════ */
+.page{display:none}.page.active{display:block}
+#page-login.active{display:flex;flex-direction:column;min-height:100vh}
+body.in-reader #stdHdr{display:none!important}
+body.in-reader #rdPbar,body.in-reader #rdNav{display:flex!important}
+body:not(.in-reader) #rdPbar,body:not(.in-reader) #rdNav{display:none!important}
 
-    a { color: inherit; text-decoration: none; }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-    button:disabled { cursor: not-allowed; opacity: 0.55; }
+/* ════ SIDEBAR ════ */
+.ham{width:34px;height:34px;border-radius:50%;border:1px solid var(--bd);color:var(--tx);display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;transition:background .15s;flex-shrink:0}
+.ham:hover{background:var(--sf2)}
+#sbOv{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;opacity:0;transition:opacity .3s}
+#sbOv.on{display:block;opacity:1}
+#sb{position:absolute;top:0;left:0;bottom:0;width:min(280px,85vw);background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 28px rgba(0,0,0,.25)}
+#sbOv.on #sb{transform:translateX(0)}
+.sb-top{padding:20px 16px 16px;border-bottom:1px solid var(--bd);background:linear-gradient(160deg,#1C0F08,#100D0A)}
+[data-theme="light"] .sb-top,[data-theme="sepia"] .sb-top{background:linear-gradient(160deg,var(--acBg),var(--bg))}
+.sb-av{width:56px;height:56px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:10px;position:relative}
+.sb-av img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%}
+.sb-name{font-size:.93rem;font-weight:800;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
+.sb-rank{font-size:.72rem;font-weight:700;margin-bottom:3px}.sb-xp{font-size:.67rem;color:var(--tx2);margin-bottom:8px}
+.sb-xbar{height:4px;border-radius:2px;background:var(--bd);overflow:hidden}
+.sb-xfill{height:100%;border-radius:2px;transition:width .5s}
+.sb-scroll{flex:1;overflow-y:auto;padding:8px}
+.sb-lnk{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:.88rem;font-weight:600;color:var(--tx);transition:background .15s;text-decoration:none;margin-bottom:2px;cursor:pointer;width:100%;text-align:left}
+.sb-lnk:hover{background:var(--sf2)}.sb-lnk.cur{background:var(--acBg);color:var(--ac)}
+.sb-ico{width:26px;text-align:center;font-size:1rem;flex-shrink:0}
+.sb-sep{height:1px;background:var(--bd);margin:6px 4px}
+.sb-bot{padding:10px 8px;border-top:1px solid var(--bd)}
+.sb-act{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:.88rem;font-weight:600;color:var(--tx);transition:background .15s;width:100%;cursor:pointer;border:none;background:none;font-family:var(--f);text-align:left}
+.sb-act:hover{background:var(--sf2)}.sb-act.red{color:var(--ac)}.sb-act.red:hover{background:var(--acBg)}
 
-    .app-shell {
-      width: min(1220px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 22px 0 48px;
-    }
+/* ════ STD HEADER ════ */
+#stdHdr{position:sticky;top:0;z-index:99;background:var(--sf);border-bottom:1px solid var(--bd)}
+.hdr-in{max-width:960px;margin:0 auto;padding:0 14px;height:52px;display:flex;align-items:center;gap:10px}
+.logo{font-family:var(--dp);font-size:1.2rem;font-weight:800;color:var(--ac);letter-spacing:-.02em;cursor:pointer}
+.logo em{font-style:normal;font-family:var(--f);font-size:.65em;font-weight:600;color:var(--tx2);margin-left:4px}
+.hdr-back{width:34px;height:34px;border-radius:50%;border:1px solid var(--bd);color:var(--tx);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;transition:background .15s;cursor:pointer}
+.hdr-back:hover{background:var(--sf2)}
+.hdr-t{flex:1;font-size:.88rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srch{flex:1;max-width:340px;position:relative}
+.srch input{width:100%;height:34px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rp);padding:0 34px 0 12px;color:var(--tx);font-size:.82rem;font-family:var(--f);outline:none;transition:border-color .2s}
+.srch input::placeholder{color:var(--tx3)}.srch input:focus{border-color:var(--ac)}
+.srch-i{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--tx3);pointer-events:none}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:7px}
+.ibtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--bd);color:var(--tx);display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:background .15s;flex-shrink:0}
+.ibtn:hover{background:var(--sf2)}
 
-    .topbar {
-      position: sticky;
-      top: 12px;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 14px;
-      margin-bottom: 24px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: var(--panel-soft);
-      backdrop-filter: blur(18px);
-      box-shadow: var(--shadow);
-    }
+/* ════ READER NAV ════ */
+#rdPbar{position:fixed;top:0;left:0;z-index:200;height:2px;width:0;background:var(--pr);transition:width .12s;pointer-events:none}
+#rdNav{position:fixed;top:2px;left:0;right:0;z-index:100;background:var(--nb);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);align-items:center;gap:7px;padding:9px 12px;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+#rdNav.hide{transform:translateY(-110%)}
+.rn-back{width:32px;height:32px;border-radius:50%;border:1px solid var(--bd);color:var(--tx);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;cursor:pointer;transition:background .15s}
+.rn-back:hover{background:var(--sf2)}
+.rn-t{flex:1;font-size:.78rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rn-r{display:flex;align-items:center;gap:5px}
+.nact{width:32px;height:32px;border-radius:50%;border:1px solid var(--bd);color:var(--tx);display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:background .15s;flex-shrink:0}
+.nact:hover{background:var(--sf2)}.nact span{font-size:.62rem;font-weight:800}
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 900;
-      letter-spacing: -0.04em;
-      font-size: 1.2rem;
-    }
+/* ════ GENRE BAR ════ */
+.gbar{background:var(--sf);border-bottom:1px solid var(--bd);overflow-x:auto;scrollbar-width:none}
+.gbar::-webkit-scrollbar{display:none}
+.gbar-in{max-width:960px;margin:0 auto;padding:0 14px;display:flex;gap:2px;height:40px;align-items:center}
+.gtag{padding:4px 12px;border-radius:var(--rp);font-size:.76rem;font-weight:600;white-space:nowrap;color:var(--tx2);transition:all .15s;border:1px solid transparent}
+.gtag:hover{color:var(--tx);background:var(--sf2)}.gtag.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 
-    .brand-mark {
-      display: grid;
-      place-items: center;
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: white;
-      box-shadow: 0 12px 24px rgba(139, 92, 246, 0.38);
-    }
+/* ════ LAYOUT ════ */
+.pg{max-width:960px;margin:0 auto;padding:20px 14px 72px}
+.pg-md{max-width:720px;margin:0 auto;padding:20px 14px 60px}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sec-t{font-size:.92rem;font-weight:800;display:flex;align-items:center;gap:7px}
+.sec-t::before{content:'';width:3px;height:14px;background:var(--ac);border-radius:2px;display:block}
 
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
+/* ════ LOGIN ════ */
+.ln-nav{background:var(--sf);border-bottom:1px solid var(--bd)}.ln-nav-in{max-width:400px;margin:0 auto;padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.login-pg{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.card{width:100%;max-width:380px;background:var(--sf);border:1px solid var(--bd);border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)}
+.card-top{padding:28px 28px 20px;text-align:center;background:linear-gradient(160deg,#1C0F08,#100D0A);border-bottom:1px solid var(--bd)}
+[data-theme="light"] .card-top{background:linear-gradient(160deg,#FEF0EA,#F4F1EB)}
+.card-logo{font-family:var(--dp);font-size:1.8rem;font-weight:800;color:var(--ac);margin-bottom:4px}
+.card-sub{font-size:.78rem;color:var(--tx2)}
+.ln-tabs{display:flex;padding:16px 24px 0}
+.ln-tab{flex:1;padding:9px 0;text-align:center;font-size:.84rem;font-weight:700;border-bottom:2px solid transparent;color:var(--tx2);transition:all .2s;cursor:pointer}
+.ln-tab.on{color:var(--ac);border-bottom-color:var(--ac)}
+.fbody{padding:16px 24px 20px;display:flex;flex-direction:column;gap:11px}
+.emsg{display:none;padding:10px 12px;border-radius:9px;font-size:.8rem;font-weight:600;line-height:1.45}
+.emsg.err{display:block;background:#280E0E;color:#E84040}.emsg.ok{display:block;background:#0D2015;color:#34A853}
+[data-theme="light"] .emsg.err{background:#FEE8E8;color:#CC2020}[data-theme="light"] .emsg.ok{background:#E8F5EC;color:#1A6E30}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:.7rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--tx2)}
+.field input{background:var(--sf2);border:1.5px solid var(--bd);border-radius:10px;padding:11px 14px;color:var(--tx);font-size:.9rem;font-family:var(--f);outline:none;transition:border-color .2s}
+.field input::placeholder{color:var(--tx3)}.field input:focus{border-color:var(--ac)}
+.fpanel{display:none;flex-direction:column;gap:11px}.fpanel.on{display:flex}
+.mbtn{width:100%;padding:12px;border-radius:11px;background:var(--ac);color:#fff;font-size:.9rem;font-weight:800;font-family:var(--f);cursor:pointer;border:none;transition:opacity .2s,transform .15s;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px}
+.mbtn:hover{opacity:.88}.mbtn:active{transform:scale(.98)}.mbtn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:lspin .7s linear infinite;display:none}
+.mbtn.loading .spin{display:block}.mbtn.loading .btxt{display:none}
+.div-or{display:flex;align-items:center;gap:10px;color:var(--tx3);font-size:.75rem}
+.div-or::before,.div-or::after{content:'';flex:1;height:1px;background:var(--bd)}
+.gbtn{width:100%;padding:11px;border-radius:11px;background:var(--sf2);border:1.5px solid var(--bd);color:var(--tx);font-size:.88rem;font-weight:700;font-family:var(--f);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:border-color .2s,background .2s}
+.gbtn:hover{border-color:var(--tx2);background:var(--bd)}
+.gico{width:18px;height:18px;flex-shrink:0}
+.card-foot{padding:12px 24px;border-top:1px solid var(--bd);text-align:center;font-size:.75rem;color:var(--tx3)}
+.card-foot span{color:var(--ac);cursor:pointer;font-weight:700}
 
-    .btn {
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 10px 14px;
-      color: var(--text);
-      background: var(--panel-2-soft);
-      transition: transform 0.18s ease, border 0.18s ease, background 0.18s ease;
-    }
+/* ════ HOME ════ */
+.cont-bar{display:none;background:var(--acBg);border:1px solid rgba(232,98,42,.28);border-radius:var(--r);padding:13px 15px;align-items:center;gap:12px;margin-bottom:22px;cursor:pointer;transition:border-color .2s}
+.cont-bar.show{display:flex}.cont-bar:hover{border-color:var(--ac)}
+.cont-ico{font-size:1.7rem;flex-shrink:0}.cont-b{flex:1;min-width:0}
+.cont-lbl{font-size:.65rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:1px}
+.cont-t{font-size:.88rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cont-s{font-size:.73rem;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feat{border-radius:var(--r);border:1px solid var(--bd);background:linear-gradient(135deg,#1C0F08,#2E1608 60%,#100D0A);display:flex;min-height:150px;overflow:hidden;margin-bottom:26px;cursor:pointer;position:relative;transition:border-color .2s}
+[data-theme="light"] .feat{background:linear-gradient(135deg,#FEF0EA,#FAE6D5 60%,#F4F1EB)}
+.feat:hover{border-color:var(--ac)}
+.feat-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(232,98,42,.14),transparent 70%);pointer-events:none}
+.feat-b{padding:20px 18px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;z-index:1;min-width:0}
+.feat-badge{display:inline-flex;background:var(--ac);color:#fff;font-size:.64rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:var(--rp);width:fit-content}
+.feat-t{font-family:var(--dp);font-size:1.2rem;font-weight:800;line-height:1.2}
+.feat-m{font-size:.77rem;color:var(--tx2)}
+.feat-btn{display:inline-flex;background:var(--ac);color:#fff;padding:8px 16px;border-radius:var(--rp);font-size:.8rem;font-weight:700;width:fit-content;transition:opacity .2s}
+.feat-btn:hover{opacity:.88}
+.feat-cov{width:100px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:2.8rem;overflow:hidden;background:linear-gradient(165deg,#3D1A0A,#1A0A04);position:relative}
+[data-theme="light"] .feat-cov{background:linear-gradient(165deg,#F9D5B8,#F0B898)}
+.feat-cov img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:18px 11px;margin-bottom:30px}
+.bc{display:flex;flex-direction:column;gap:7px;cursor:pointer}
+.bc:hover .bcov{transform:translateY(-3px);box-shadow:var(--sh2)}.bc:hover .bt{color:var(--ac)}
+.bcov{aspect-ratio:2/3;border-radius:9px;overflow:hidden;position:relative;background:var(--sf2);box-shadow:var(--sh);transition:transform .22s,box-shadow .22s;display:flex;align-items:center;justify-content:center}
+.bcov img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.bcov-ico{font-size:2.5rem;z-index:0}
+.bstat{position:absolute;top:5px;left:5px;font-size:.58rem;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:var(--rp);background:var(--gr);color:#fff;z-index:1}
+.bstat.full{background:var(--pu)}
+.bcnt{position:absolute;bottom:0;left:0;right:0;padding:18px 6px 5px;background:linear-gradient(to top,rgba(0,0,0,.72),transparent);font-size:.64rem;font-weight:600;color:#fff;text-align:right;z-index:1}
+.bt{font-size:.8rem;font-weight:700;line-height:1.3;color:var(--tx);transition:color .15s;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bauth{font-size:.7rem;color:var(--tx3)}
+.rlist{display:flex;flex-direction:column;margin-bottom:30px}
+.ri{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.ri:last-child{border-bottom:none}.ri:hover .rt{color:var(--ac)}
+.rnum{font-size:.7rem;font-weight:800;color:var(--tx3);width:18px;flex-shrink:0;text-align:center}
+.rcov{width:38px;height:52px;border-radius:7px;flex-shrink:0;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:var(--sh);overflow:hidden;position:relative}
+.rcov img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.rbody{flex:1;min-width:0}.rt{font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s}
+.rs{font-size:.71rem;color:var(--tx2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtime{font-size:.68rem;color:var(--tx3);flex-shrink:0}
 
-    .btn:hover { transform: translateY(-1px); border-color: rgba(139, 92, 246, 0.65); }
-    .btn.primary { background: linear-gradient(135deg, var(--accent), #6366f1); color: white; border: none; }
-    .btn.ghost { background: transparent; }
-    .btn.danger { border-color: rgba(251, 113, 133, 0.42); color: var(--danger); }
-    .btn.small { padding: 7px 10px; font-size: 0.9rem; }
+/* ════ STORY ════ */
+.hero-block{background:var(--sf);border-bottom:1px solid var(--bd)}
+.hero-in{max-width:960px;margin:0 auto;padding:20px 14px 22px;display:flex;gap:18px;align-items:flex-start}
+.h-cov{width:100px;height:144px;border-radius:11px;flex-shrink:0;background:linear-gradient(165deg,#3D1A0A,#1A0A04);display:flex;align-items:center;justify-content:center;font-size:2.8rem;box-shadow:3px 5px 0 rgba(0,0,0,.4);overflow:hidden;position:relative}
+[data-theme="light"] .h-cov{background:linear-gradient(165deg,#F9D5B8,#F0B898);box-shadow:3px 5px 0 rgba(0,0,0,.12)}
+.h-cov img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.h-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.h-t{font-family:var(--dp);font-size:1.2rem;font-weight:800;line-height:1.2}
+.h-auth{font-size:.8rem;color:var(--tx2)}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:var(--rp);background:var(--sf2);color:var(--tx2)}
+.tag-g{background:var(--gr);color:#fff}.tag-p{background:var(--pu);color:#fff}
+.h-btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:2px}
+.btn-p{display:inline-flex;align-items:center;gap:5px;background:var(--ac);color:#fff;padding:9px 16px;border-radius:var(--rp);font-size:.82rem;font-weight:700;font-family:var(--f);transition:opacity .2s;cursor:pointer;border:none}
+.btn-p:hover{opacity:.88}
+.btn-sec{display:inline-flex;align-items:center;gap:5px;background:var(--sf2);color:var(--tx);padding:9px 13px;border-radius:var(--rp);font-size:.82rem;font-weight:600;font-family:var(--f);transition:all .2s;cursor:pointer;border:1px solid var(--bd)}
+.btn-sec:hover{border-color:var(--tx2)}.btn-sec.bm-on{background:var(--acBg);color:var(--ac);border-color:rgba(232,98,42,.35)}
+.sbar-block{background:var(--sf);border-bottom:1px solid var(--bd)}
+.sbar-in{max-width:960px;margin:0 auto;padding:0 14px;display:flex}
+.si{flex:1;text-align:center;padding:13px 0;border-right:1px solid var(--bd)}.si:last-child{border-right:none}
+.sn{font-size:1.1rem;font-weight:800;color:var(--ac)}.sl{font-size:.68rem;color:var(--tx2);margin-top:2px}
+.desc{font-size:.84rem;color:var(--tx2);line-height:1.75;margin-bottom:24px}
+.chlist{display:flex;flex-direction:column}
+.chi{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.chi:last-child{border-bottom:none}.chi:hover .chi-t{color:var(--ac)}
+.chi-n{width:32px;height:32px;border-radius:50%;flex-shrink:0;background:var(--sf2);color:var(--tx2);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800}
+.chi.read .chi-n{background:var(--acBg);color:var(--ac)}.chi.reading .chi-n{background:var(--ac);color:#fff}
+.chi-b{flex:1;min-width:0}.chi-lbl{font-size:.68rem;color:var(--tx3);margin-bottom:1px}
+.chi-t{font-size:.87rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .15s}
+.chi-m{font-size:.7rem;color:var(--tx3);margin-top:2px}
+.chi-dot{width:7px;height:7px;border-radius:50%;background:var(--bd);flex-shrink:0}
+.chi.read .chi-dot{background:var(--gr)}.chi.reading .chi-dot{background:var(--ac)}
+.rbadge{font-size:.64rem;font-weight:800;padding:2px 7px;border-radius:var(--rp);background:var(--acBg);color:var(--ac)}
 
-    .hero {
-      display: grid;
-      grid-template-columns: 1.25fr 0.75fr;
-      gap: 20px;
-      margin-bottom: 22px;
-    }
+/* ════ READER ════ */
+#page-reader{padding-top:56px;padding-bottom:80px;font-size:17px;line-height:1.88}
+#page-reader.f-serif{font-family:'Lora',Georgia,serif}
+#page-reader.f-mono{font-family:'Courier New',monospace}
+#page-reader.lh-tight{line-height:1.65}#page-reader.lh-loose{line-height:2.15}
+#rdWrap{max-width:640px;margin:0 auto;padding:28px 16px;transition:max-width .3s}
+#rdWrap.w-sm{max-width:480px}#rdWrap.w-lg{max-width:800px}
+.ch-hdr{text-align:center;padding-bottom:26px;border-bottom:1px solid var(--bd);margin-bottom:28px}
+.crumb{font-size:.76rem;color:var(--ac);font-weight:600;margin-bottom:6px;cursor:pointer}.crumb:hover{text-decoration:underline}
+.ch-title{font-family:var(--dp);font-size:1.4rem;font-weight:800;line-height:1.2;margin-bottom:12px}
+.metas{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 14px}
+.meta{font-size:.72rem;color:var(--tx2)}.msep{width:3px;height:3px;border-radius:50%;background:var(--tx3)}
+#rdContent{font-size:17px}
+#rdContent p{margin-bottom:1em;text-indent:1.8em}
+#rdContent p:first-child{text-indent:0}
+#rdContent p:first-child::first-letter{font-family:var(--dp);font-size:3.4em;line-height:.75;float:left;margin:6px 8px 0 0;color:var(--ac)}
+.ch-foot{margin-top:48px;padding-top:18px;border-top:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+.cnbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:11px 12px;border-radius:12px;background:var(--sf);border:1px solid var(--bd);color:var(--tx);font-size:.82rem;font-weight:700;font-family:inherit;transition:all .2s;cursor:pointer}
+.cnbtn:hover{background:var(--sf2)}.cnbtn.off{opacity:.3;pointer-events:none}
+.toc-cir{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:var(--ac);color:#fff;font-size:1rem;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;box-shadow:var(--sh)}
+.toc-cir:hover{opacity:.88}
+.swipe-tip{text-align:center;font-size:.68rem;color:var(--tx3);padding-top:18px}
+#btt{position:fixed;bottom:22px;right:14px;z-index:80;width:40px;height:40px;border-radius:50%;background:var(--sf);border:1px solid var(--bd);color:var(--tx);font-size:1rem;display:none;align-items:center;justify-content:center;box-shadow:var(--sh);cursor:pointer;transition:all .2s}
+#btt.show{display:flex}#btt:hover{transform:translateY(-2px)}
+#xpToast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(20px);z-index:400;background:var(--sf);border:1px solid var(--bd);border-radius:40px;padding:9px 18px;font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:var(--sh);opacity:0;transition:all .4s;pointer-events:none;white-space:nowrap}
+#xpToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.xp-n{color:var(--ac)}
 
-    .hero-card, .panel {
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--panel-soft);
-      box-shadow: var(--shadow);
-    }
+/* SETTINGS PANEL */
+#sOv{display:none;position:fixed;inset:0;background:var(--ov);z-index:150;opacity:0;transition:opacity .25s}
+#sOv.on{display:block;opacity:1}
+#sPanel{position:absolute;bottom:0;left:0;right:0;background:var(--sf);border:1px solid var(--bd);border-radius:20px 20px 0 0;padding:6px 18px 40px;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -4px 30px rgba(0,0,0,.2)}
+#sOv.on #sPanel{transform:translateY(0)}
+.p-handle{width:36px;height:3px;border-radius:2px;background:var(--bd);margin:10px auto 15px}
+.p-t{font-size:.9rem;font-weight:800;margin-bottom:16px}
+.srow{margin-bottom:14px}.slbl{font-size:.65rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--tx2);margin-bottom:7px}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opt{padding:7px 13px;border-radius:9px;border:1px solid var(--bd);background:var(--sf2);color:var(--tx);font-size:.8rem;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s}
+.opt.on{background:var(--ac);color:#fff;border-color:var(--ac)}.opt:hover:not(.on){border-color:var(--tx2)}
+.fs-row{display:flex;align-items:center;gap:10px}
+.fsbtn{width:36px;height:36px;border-radius:8px;border:1px solid var(--bd);background:var(--sf2);color:var(--tx);font-size:1rem;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.fsbtn:hover{border-color:var(--tx2)}
+.fs-sl{flex:1;height:3px;border-radius:2px;background:var(--bd);cursor:pointer;position:relative}
+.fs-fill{height:100%;border-radius:2px;background:var(--ac);transition:width .1s}
+.fs-val{font-size:.88rem;font-weight:800;min-width:44px;text-align:center}
+/* TOC */
+#tOv{display:none;position:fixed;inset:0;background:var(--ov);z-index:150;opacity:0;transition:opacity .25s}
+#tOv.on{display:block;opacity:1}
+#tPanel{position:absolute;top:0;right:0;bottom:0;width:min(290px,84vw);background:var(--sf);border-left:1px solid var(--bd);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 28px rgba(0,0,0,.18)}
+#tOv.on #tPanel{transform:translateX(0)}
+.toc-hdr{padding:14px 14px 11px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--sf);z-index:1}
+.toc-ht{font-size:.88rem;font-weight:800}
+.toc-x{width:28px;height:28px;border-radius:50%;border:1px solid var(--bd);color:var(--tx);display:flex;align-items:center;justify-content:center;font-size:.8rem;cursor:pointer}
+.toc-sc{flex:1;overflow-y:auto}
+.ti{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--bd);color:var(--tx);transition:background .15s;cursor:pointer}
+.ti:hover{background:var(--sf2)}.ti.active{background:var(--acBg);color:var(--ac)}.ti.read{color:var(--tx2)}
+.ti-n{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:var(--sf2);color:var(--tx2);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800}
+.ti.active .ti-n{background:var(--ac);color:#fff}
+.ti-b{flex:1;min-width:0}.ti-sub{font-size:.66rem;color:var(--tx2);margin-bottom:1px}
+.ti-t{font-size:.83rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ti-dot{width:6px;height:6px;border-radius:50%;background:var(--bd);flex-shrink:0}
+.ti.read .ti-dot{background:var(--gr)}.ti.active .ti-dot{background:var(--ac)}
 
-    .hero-card {
-      min-height: 315px;
-      padding: 30px;
-      overflow: hidden;
-      position: relative;
-    }
+/* ════ PROFILE ════ */
+.phero{background:var(--sf);border-bottom:1px solid var(--bd)}
+.phero-in{max-width:720px;margin:0 auto;padding:22px 14px 16px;display:flex;flex-direction:column;align-items:center}
+.av-wrap{position:relative;cursor:pointer;margin-bottom:10px}
+.av-ring{width:90px;height:90px;border-radius:50%;padding:3px;background:conic-gradient(var(--ac) var(--p,0%), var(--bd) 0%)}
+.av-inner{width:100%;height:100%;border-radius:50%;overflow:hidden;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;position:relative}
+.av-inner img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.av-edit-ico{position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:var(--ac);color:#fff;font-size:.78rem;display:flex;align-items:center;justify-content:center;border:2px solid var(--sf)}
+.av-hint{font-size:.68rem;color:var(--tx3);margin-bottom:10px}
+.p-name{font-family:var(--dp);font-size:1.2rem;font-weight:800;margin-bottom:3px}
+.p-rnk{font-size:.8rem;font-weight:700;margin-bottom:4px}.p-xpt{font-size:.7rem;color:var(--tx2);margin-bottom:12px}
+.xp-bw{width:100%;max-width:280px}
+.xp-labels{display:flex;justify-content:space-between;font-size:.67rem;color:var(--tx2);margin-bottom:5px}
+.xp-bar{height:6px;border-radius:3px;background:var(--bd);overflow:hidden;margin-bottom:4px}
+.xp-fill{height:100%;border-radius:3px;transition:width .6s}
+.xp-next{font-size:.68rem;color:var(--tx2);text-align:right}
+.rroad{width:100%;overflow-x:auto;scrollbar-width:none;padding:16px 0 4px}
+.rroad::-webkit-scrollbar{display:none}
+.rrow{display:flex;align-items:center;min-width:max-content;padding:0 20px}
+.rk-node{display:flex;flex-direction:column;align-items:center;gap:4px}
+.rk-circle{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;border:2px solid var(--bd);background:var(--sf2);position:relative;z-index:1}
+.rk-circle.done{border-color:transparent}.rk-circle.cur{box-shadow:0 0 0 3px rgba(232,98,42,.3)}
+.rk-lbl{font-size:.56rem;font-weight:700;color:var(--tx3);white-space:nowrap}
+.rk-lbl.done{color:var(--tx2)}.rk-lbl.cur{color:var(--ac)}
+.rk-line{width:22px;height:2px;background:var(--bd);margin-top:-15px;z-index:0;flex-shrink:0}.rk-line.done{background:var(--gr)}
+.sg{max-width:720px;margin:16px auto 0;padding:0 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px 10px;text-align:center}
+.sc-n{font-size:1.2rem;font-weight:800;color:var(--ac)}.sc-l{font-size:.7rem;color:var(--tx2);margin-top:2px}
+.name-row{display:flex;gap:8px;margin-bottom:22px}
+.name-row input{flex:1;background:var(--sf);border:1.5px solid var(--bd);border-radius:10px;padding:10px 12px;color:var(--tx);font-size:.88rem;font-family:var(--f);outline:none;transition:border-color .2s}
+.name-row input:focus{border-color:var(--ac)}
+.save-btn{padding:10px 16px;border-radius:10px;background:var(--ac);color:#fff;font-size:.84rem;font-weight:700;font-family:var(--f);border:none;cursor:pointer;transition:opacity .2s;white-space:nowrap}
+.save-btn:hover{opacity:.88}.save-btn:disabled{opacity:.5}
+.p-tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:16px}
+.p-tab{padding:10px 14px;font-size:.82rem;font-weight:700;color:var(--tx2);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s}
+.p-tab.on{color:var(--ac);border-bottom-color:var(--ac)}
+.slist{display:flex;flex-direction:column}
+.sli{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.sli:last-child{border-bottom:none}.sli:hover .sli-t{color:var(--ac)}
+.sli-cov{width:38px;height:54px;border-radius:7px;flex-shrink:0;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;overflow:hidden;position:relative;box-shadow:var(--sh)}
+.sli-cov img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.sli-b{flex:1;min-width:0}.sli-t{font-size:.85rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .15s}
+.sli-s{font-size:.72rem;color:var(--tx2);margin-top:2px}.sli-tm{font-size:.68rem;color:var(--tx3);flex-shrink:0}
+.empty{text-align:center;padding:28px 14px;color:var(--tx3);font-size:.85rem}
+.empty span{display:block;font-size:2rem;margin-bottom:8px}
+.logout-btn{width:100%;margin-top:28px;padding:13px;border-radius:var(--r);background:var(--sf);border:1px solid var(--bd);color:var(--ac);font-size:.88rem;font-weight:700;font-family:var(--f);cursor:pointer;transition:background .15s}
+.logout-btn:hover{background:var(--acBg)}
 
-    .hero-card::after {
-      content: '';
-      position: absolute;
-      width: 330px;
-      height: 330px;
-      right: -80px;
-      bottom: -110px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.38), rgba(34, 211, 238, 0.22));
-      filter: blur(2px);
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      color: var(--accent-2);
-      background: rgba(34, 211, 238, 0.08);
-      font-weight: 700;
-      font-size: 0.9rem;
-    }
-
-    h1 {
-      max-width: 760px;
-      margin: 18px 0 10px;
-      font-size: clamp(2.2rem, 6vw, 4.8rem);
-      line-height: 0.98;
-      letter-spacing: -0.075em;
-    }
-
-    .hero-card p {
-      max-width: 650px;
-      color: var(--muted);
-      font-size: 1.05rem;
-      line-height: 1.7;
-      margin-bottom: 22px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1; }
-
-    .stats-panel { padding: 22px; display: grid; gap: 14px; }
-
-    .stat, .advanced-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
-      border-radius: 18px;
-      background: var(--panel-2-soft);
-      border: 1px solid var(--border);
-    }
-
-    .stat span, .advanced-row span { color: var(--muted); }
-    .stat strong { font-size: 1.35rem; }
-
-    .toolbar {
-      display: grid;
-      grid-template-columns: 1.4fr repeat(3, minmax(130px, 0.45fr));
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-
-    .field input, .field select, .advanced-input, .advanced-textarea {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      color: var(--text);
-      background: var(--panel-soft);
-      padding: 13px 14px;
-      outline: none;
-      transition: border 0.18s ease, box-shadow 0.18s ease;
-    }
-
-    .advanced-textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
-
-    .field input:focus, .field select:focus, .advanced-input:focus, .advanced-textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.14);
-    }
-
-    .tab.active {
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(34, 211, 238, 0.72));
-      color: white;
-      border-color: transparent;
-    }
-
-    .content-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 320px;
-      gap: 20px;
-      align-items: start;
-    }
-
-    .story-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-
-    .story-card {
-      position: relative;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--panel-soft);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
-      transition: transform 0.2s ease, border 0.2s ease;
-    }
-
-    .story-card:hover { transform: translateY(-5px); border-color: rgba(139, 92, 246, 0.55); }
-
-    .cover {
-      min-height: 180px;
-      display: grid;
-      place-items: end start;
-      padding: 16px;
-      background: linear-gradient(135deg, var(--cover-a), var(--cover-b));
-      color: white;
-    }
-
-    .cover h3 { margin: 0; font-size: 1.45rem; line-height: 1.06; text-shadow: 0 8px 18px rgba(0,0,0,0.24); }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      width: fit-content;
-      padding: 6px 9px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.16);
-      color: white;
-      font-size: 0.78rem;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-
-    .story-body { padding: 15px; }
-    .meta { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; color: var(--muted); font-size: 0.86rem; }
-    .desc { color: var(--muted); line-height: 1.62; font-size: 0.93rem; min-height: 72px; }
-    .tags { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
-
-    .tag {
-      padding: 5px 8px;
-      border-radius: 999px;
-      background: rgba(139, 92, 246, 0.15);
-      color: var(--accent-2);
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-
-    .story-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-    .sidebar { display: grid; gap: 16px; }
-    .panel { padding: 18px; }
-    .panel h2, .panel h3 { margin: 0 0 14px; letter-spacing: -0.03em; }
-    .mini-list, .advanced-grid { display: grid; gap: 10px; }
-
-    .mini-item {
-      display: grid;
-      grid-template-columns: 44px 1fr auto;
-      gap: 10px;
-      align-items: center;
-      padding: 10px;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: var(--panel-2-soft);
-    }
-
-    .mini-cover { width: 44px; height: 44px; border-radius: 13px; background: linear-gradient(135deg, var(--cover-a), var(--cover-b)); }
-    .mini-item strong { display: block; font-size: 0.94rem; }
-    .mini-item span { color: var(--muted); font-size: 0.8rem; }
-
-    .progress-wrap { height: 8px; background: rgba(153, 168, 196, 0.18); border-radius: 999px; overflow: hidden; margin-top: 8px; }
-    .progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: inherit; }
-
-    .empty-state {
-      display: none;
-      padding: 34px;
-      border: 1px dashed var(--border);
-      border-radius: var(--radius);
-      color: var(--muted);
-      text-align: center;
-      background: var(--panel-soft);
-    }
-
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      display: none;
-      place-items: center;
-      padding: 20px;
-      background: rgba(2, 6, 23, 0.72);
-      backdrop-filter: blur(12px);
-      z-index: 50;
-    }
-
-    .modal-backdrop.open { display: grid; }
-    .modal {
-      width: min(760px, 100%);
-      max-height: 86vh;
-      overflow: auto;
-      border: 1px solid var(--border);
-      border-radius: 26px;
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      animation: pop 0.22s ease;
-    }
-
-    @keyframes pop {
-      from { transform: translateY(12px) scale(0.98); opacity: 0; }
-      to { transform: translateY(0) scale(1); opacity: 1; }
-    }
-
-    .modal-header { display: flex; justify-content: space-between; align-items: start; gap: 14px; padding: 22px; border-bottom: 1px solid var(--border); }
-    .modal-body { padding: 22px; }
-    .chapter-list { display: grid; gap: 8px; margin-top: 14px; }
-
-    .chapter-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-      padding: 13px 14px;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: var(--panel-2-soft);
-    }
-
-    .reader { display: none; position: fixed; inset: 0; z-index: 80; background: var(--reader-bg); color: var(--reader-text); }
-    .reader.open { display: grid; grid-template-rows: auto 1fr auto; }
-
-    .reader-top, .reader-bottom {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 18px;
-      border-color: var(--reader-border);
-      background: var(--reader-panel);
-      backdrop-filter: blur(16px);
-    }
-
-    .reader-top { border-bottom: 1px solid var(--reader-border); }
-    .reader-bottom { border-top: 1px solid var(--reader-border); }
-    .reader-title strong { display: block; }
-    .reader-title span { display: block; color: var(--reader-muted); font-size: 0.86rem; }
-
-    .reader-tools { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-
-    .reader-search {
-      width: min(260px, 100%);
-      border: 1px solid var(--reader-border);
-      border-radius: 999px;
-      color: var(--reader-text);
-      background: rgba(0, 0, 0, 0.08);
-      padding: 8px 12px;
-      outline: none;
-    }
-
-    .reader-main { overflow: auto; padding: 34px 18px 80px; scroll-behavior: smooth; }
-    .reader-article { width: min(780px, 100%); margin: 0 auto; font-family: var(--reader-font); font-size: var(--reader-font-size); line-height: var(--reader-line-height); }
-    .reader-article h2 { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: clamp(1.7rem, 4vw, 3rem); letter-spacing: -0.05em; line-height: 1.05; margin-bottom: 24px; }
-    .reader-article p { margin: 0 0 1.3em; }
-
-    .settings-drawer {
-      position: fixed;
-      right: 18px;
-      bottom: 76px;
-      z-index: 90;
-      width: min(340px, calc(100vw - 36px));
-      display: none;
-      gap: 12px;
-      padding: 16px;
-      border: 1px solid var(--reader-border);
-      border-radius: 24px;
-      background: var(--reader-panel);
-      box-shadow: var(--shadow);
-    }
-
-    .settings-drawer.open { display: grid; }
-    .setting-row { display: grid; gap: 8px; }
-    .setting-row label { font-size: 0.9rem; color: var(--reader-muted); }
-    .setting-row input, .setting-row select { width: 100%; border: 1px solid var(--reader-border); border-radius: 12px; color: var(--reader-text); background: rgba(0,0,0,0.08); padding: 10px; }
-
-    .reader-progress { position: fixed; top: 0; left: 0; height: 4px; width: 0; z-index: 100; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
-    .reader-mark { border-radius: 6px; background: rgba(251,191,36,.42); color: inherit; padding: 0 2px; }
-
-    .note-card { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 16px; background: var(--panel-2-soft); }
-    .note-card blockquote { margin: 0; padding-left: 10px; border-left: 3px solid var(--accent); color: var(--muted); line-height: 1.55; }
-    .note-card p { margin: 0; line-height: 1.6; }
-    .note-meta { color: var(--muted); font-size: 0.82rem; }
-
-    .goal-ring { width:82px; height:82px; border-radius:50%; display:grid; place-items:center; background: conic-gradient(var(--accent) var(--goal-progress, 0deg), rgba(153,168,196,0.18) 0deg); margin:auto; }
-    .goal-ring-inner { width:64px; height:64px; border-radius:50%; display:grid; place-items:center; background:var(--panel); font-weight:900; }
-    .file-drop { display:block; padding:12px; border:1px dashed var(--border); border-radius:16px; text-align:center; color:var(--muted); cursor:pointer; }
-    .file-drop input { display:none; }
-
-    .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(18px); z-index: 120; opacity: 0; pointer-events: none; padding: 12px 16px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); color: var(--text); box-shadow: var(--shadow); transition: opacity 0.2s ease, transform 0.2s ease; }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .kbd { padding: 2px 7px; border-radius: 7px; border: 1px solid var(--border); background: var(--panel-2-soft); font-size: 0.82rem; color: var(--muted); }
-    footer { margin-top: 34px; padding: 18px; text-align: center; color: var(--muted); }
-
-    @media (max-width: 1050px) {
-      .story-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .content-grid { grid-template-columns: 1fr; }
-      .sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-
-    @media (max-width: 760px) {
-      .app-shell { width: min(100% - 22px, 1220px); padding-top: 12px; }
-      .topbar { border-radius: 24px; align-items: stretch; flex-direction: column; }
-      .nav-actions { justify-content: stretch; }
-      .nav-actions .btn { flex: 1; }
-      .hero { grid-template-columns: 1fr; }
-      .toolbar { grid-template-columns: 1fr; }
-      .story-grid { grid-template-columns: 1fr; }
-      .sidebar { grid-template-columns: 1fr; }
-      .reader-top, .reader-bottom { flex-wrap: wrap; }
-      .reader-tools { width: 100%; }
-      .reader-search { flex: 1; width: auto; }
-    }
-  </style>
+/* ════ SHARED ════ */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);z-index:500;background:var(--sf);border:1px solid var(--bd);border-radius:40px;padding:9px 20px;font-size:.84rem;font-weight:700;box-shadow:var(--sh);opacity:0;transition:all .4s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.skel{background:linear-gradient(90deg,var(--sf2) 25%,var(--bd) 50%,var(--sf2) 75%);background-size:200% 100%;animation:lspin2 1.5s infinite;border-radius:var(--r)}
+@keyframes lspin2{0%{background-position:200% 0}100%{background-position:-200% 0}}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+</style>
 </head>
 <body>
-  <div class="app-shell" id="app">
-    <header class="topbar">
-      <a href="#" class="brand" aria-label="MoonNovel trang chủ">
-        <span class="brand-mark">☾</span>
-        <span>MoonNovel</span>
-      </a>
-      <nav class="nav-actions" aria-label="Điều hướng chính">
-        <button class="btn ghost tab active" data-tab="all">Tất cả</button>
-        <button class="btn ghost tab" data-tab="hot">Đang hot</button>
-        <button class="btn ghost tab" data-tab="bookmarks">Đã lưu</button>
-        <button class="btn ghost tab" data-tab="history">Lịch sử</button>
-        <button class="btn" id="themeToggle" title="Đổi giao diện sáng/tối">🌙</button>
-      </nav>
-    </header>
 
-    <section class="hero">
-      <div class="hero-card">
-        <span class="eyebrow">✨ Kho truyện cá nhân hoá</span>
-        <h1>Đọc truyện mượt, lưu tiến độ, đổi giao diện theo ý bạn.</h1>
-        <p>Demo một trang đọc truyện hoàn chỉnh trong một file index: tìm kiếm nhanh, lọc thể loại, đánh dấu yêu thích, lịch sử đọc, mở chương, ghi chú, xuất dữ liệu và chỉnh giao diện đọc.</p>
-        <div class="hero-actions">
-          <button class="btn primary" id="startReadingBtn">Đọc truyện đề xuất</button>
-          <button class="btn" id="randomBtn">Chọn ngẫu nhiên</button>
-          <span class="btn ghost">Phím tắt: <span class="kbd">/</span> tìm kiếm · <span class="kbd">←</span>/<span class="kbd">→</span> đổi chương</span>
-        </div>
-      </div>
+<!-- LOADING SCREEN -->
+<div id="loader">
+  <div class="ld-logo">📖 NoveLite</div>
+  <div class="ld-spin"></div>
+  <div class="ld-txt">Đang khởi động...</div>
+</div>
 
-      <aside class="stats-panel panel" aria-label="Thống kê đọc truyện">
-        <div class="stat"><span>Tổng truyện</span><strong id="statStories">0</strong></div>
-        <div class="stat"><span>Đã bookmark</span><strong id="statBookmarks">0</strong></div>
-        <div class="stat"><span>Đã đọc gần đây</span><strong id="statHistory">0</strong></div>
-        <div class="stat"><span>Tiến độ tốt nhất</span><strong id="statBest">0%</strong></div>
-      </aside>
-    </section>
-
-    <section class="toolbar" aria-label="Bộ lọc truyện">
-      <div class="field"><input id="searchInput" type="search" placeholder="Tìm tên truyện, tác giả, thể loại..." autocomplete="off" /></div>
-      <div class="field"><select id="genreFilter" aria-label="Lọc thể loại"><option value="all">Tất cả thể loại</option></select></div>
-      <div class="field"><select id="statusFilter" aria-label="Lọc trạng thái"><option value="all">Tất cả trạng thái</option><option value="Đang ra">Đang ra</option><option value="Hoàn thành">Hoàn thành</option></select></div>
-      <div class="field"><select id="sortSelect" aria-label="Sắp xếp"><option value="updated">Mới cập nhật</option><option value="rating">Đánh giá cao</option><option value="views">Lượt đọc nhiều</option><option value="chapters">Nhiều chương</option><option value="az">A-Z</option></select></div>
-    </section>
-
-    <main class="content-grid">
-      <section>
-        <div class="story-grid" id="storyGrid" aria-live="polite"></div>
-        <div class="empty-state" id="emptyState"><h3>Không tìm thấy truyện phù hợp</h3><p>Thử xoá bớt bộ lọc hoặc nhập từ khoá khác nhé.</p></div>
-      </section>
-
-      <aside class="sidebar">
-        <section class="panel"><h2>🔥 Truyện nổi bật</h2><div class="mini-list" id="topList"></div></section>
-        <section class="panel"><h2>⏳ Đọc tiếp</h2><div class="mini-list" id="continueList"></div></section>
-        <section class="panel">
-          <h2>📌 Kệ sách cá nhân</h2>
-          <div class="advanced-grid">
-            <div class="advanced-row"><span>Ghi chú đã lưu</span><strong id="advNoteCount">0</strong></div>
-            <div class="advanced-row"><span>Truyện đọc gần nhất</span><strong id="advLastStory">Chưa có</strong></div>
-            <button class="btn" id="advOpenNotesBtn">Mở sổ ghi chú</button>
-            <button class="btn" id="advExportBtn">Xuất dữ liệu JSON</button>
-            <label class="file-drop">Nhập dữ liệu JSON<input type="file" id="advImportInput" accept="application/json,.json" /></label>
-            <button class="btn danger" id="advClearHistoryBtn">Xoá lịch sử đọc</button>
-          </div>
-        </section>
-        <section class="panel">
-          <h2>🎯 Mục tiêu đọc hôm nay</h2>
-          <div class="advanced-grid">
-            <div class="goal-ring" id="advGoalRing"><div class="goal-ring-inner" id="advGoalPercent">0%</div></div>
-            <div class="advanced-row"><span>Đã đọc</span><strong id="advTodayMinutes">0 phút</strong></div>
-            <div class="advanced-row"><span>Mục tiêu</span><strong><span id="advGoalText">20</span> phút</strong></div>
-            <input class="advanced-input" id="advGoalInput" type="number" min="1" max="600" step="1" placeholder="Nhập mục tiêu phút/ngày" />
-            <button class="btn primary" id="advSaveGoalBtn">Lưu mục tiêu</button>
-          </div>
-        </section>
-        <section class="panel"><h2>🧭 Tính năng</h2><div class="mini-list"><div class="chapter-row"><span>Lưu bookmark</span><strong>LocalStorage</strong></div><div class="chapter-row"><span>Lưu tiến độ đọc</span><strong>Tự động</strong></div><div class="chapter-row"><span>Ghi chú</span><strong>N / Button</strong></div><div class="chapter-row"><span>Test</span><strong>Console</strong></div></div></section>
-      </aside>
-    </main>
-
-    <footer>MoonNovel demo index.html · Có thể thay dữ liệu mẫu bằng API hoặc database thật.</footer>
+<!-- SIDEBAR -->
+<div id="sbOv" onclick="closeSB(event)"><div id="sb">
+  <div class="sb-top">
+    <div class="sb-av" id="sbAv" style="background:var(--ac)">?</div>
+    <div class="sb-name" id="sbName">—</div>
+    <div class="sb-rank" id="sbRank">Phàm Nhân</div>
+    <div class="sb-xp" id="sbXp">0 XP</div>
+    <div class="sb-xbar"><div class="sb-xfill" id="sbXfill" style="width:0%"></div></div>
   </div>
+  <div class="sb-scroll">
+    <button class="sb-lnk" onclick="nav('home');closeSB()"><span class="sb-ico">🏠</span>Trang chủ</button>
+    <button class="sb-lnk" onclick="nav('profile');closeSB()"><span class="sb-ico">👤</span>Hồ sơ cá nhân</button>
+    <div class="sb-sep"></div>
+    <div style="padding:6px 12px;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3)">Thể loại</div>
+    <button class="sb-lnk" onclick="filterGenre('Tiên Hiệp')"><span class="sb-ico">⚡</span>Tiên Hiệp</button>
+    <button class="sb-lnk" onclick="filterGenre('Ngôn Tình')"><span class="sb-ico">💖</span>Ngôn Tình</button>
+    <button class="sb-lnk" onclick="filterGenre('Kiếm Hiệp')"><span class="sb-ico">⚔️</span>Kiếm Hiệp</button>
+    <button class="sb-lnk" onclick="filterGenre('Huyền Huyễn')"><span class="sb-ico">🔮</span>Huyền Huyễn</button>
+  </div>
+  <div class="sb-bot">
+    <button class="sb-act" onclick="toggleTheme()"><span class="sb-ico" id="sbThIco">☀️</span>Đổi giao diện</button>
+    <button class="sb-act red" onclick="doLogout()"><span class="sb-ico">🚪</span>Đăng xuất</button>
+  </div>
+</div></div>
 
-  <div class="modal-backdrop" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal">
-      <div class="modal-header">
-        <div><span class="eyebrow" id="modalStatus">Trạng thái</span><h2 id="modalTitle" style="margin:12px 0 4px">Tên truyện</h2><div class="meta" id="modalMeta"></div></div>
-        <button class="btn" id="closeModalBtn" aria-label="Đóng">✕</button>
+<!-- READER FIXED ELEMENTS -->
+<div id="rdPbar"></div>
+<nav id="rdNav">
+  <button class="rn-back" onclick="rdBack()">←</button>
+  <div class="rn-t" id="rdNavTitle">—</div>
+  <div class="rn-r">
+    <button class="nact" onclick="openTOC()">☰</button>
+    <button class="nact" onclick="openSettings()"><span>Aa</span></button>
+    <button class="ham" onclick="openSB()">⋮</button>
+  </div>
+</nav>
+<button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<div id="xpToast">⚡ <span class="xp-n">+15 XP</span></div>
+
+<!-- STD HEADER -->
+<header id="stdHdr"><div class="hdr-in" id="hdrIn"></div></header>
+
+<!-- PAGE: LOGIN -->
+<div id="page-login" class="page">
+  <nav class="ln-nav"><div class="ln-nav-in">
+    <div class="logo" onclick="nav('home')">NoveLite</div>
+    <button class="ibtn" id="lnTBtn" onclick="toggleTheme()">🌙</button>
+  </div></nav>
+  <div class="login-pg"><div class="card">
+    <div class="card-top">
+      <div class="card-logo">📖 NoveLite</div>
+      <div class="card-sub">Đăng nhập để lưu tiến độ &amp; nhận XP tu luyện</div>
+    </div>
+    <div class="ln-tabs">
+      <div class="ln-tab on" id="tl" onclick="lnSw('login')">Đăng nhập</div>
+      <div class="ln-tab" id="tr" onclick="lnSw('reg')">Đăng ký</div>
+    </div>
+    <div class="fbody">
+      <div class="emsg" id="lnMsg"></div>
+      <div class="field"><label>Email</label><input type="email" id="lnEm" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="field"><label>Mật khẩu</label><input type="password" id="lnPw" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="fpanel" id="lnCfP">
+        <div class="field"><label>Xác nhận mật khẩu</label><input type="password" id="lnCf" placeholder="••••••••" autocomplete="new-password"></div>
       </div>
-      <div class="modal-body">
-        <p class="desc" id="modalDesc" style="min-height:auto"></p>
-        <div class="tags" id="modalTags"></div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin:16px 0"><button class="btn primary" id="readFirstBtn">Đọc từ đầu</button><button class="btn" id="readContinueBtn">Đọc tiếp</button><button class="btn" id="modalBookmarkBtn">♡ Lưu truyện</button></div>
-        <h3>Danh sách chương</h3>
-        <input class="advanced-input" id="chapterSearchInput" type="search" placeholder="Tìm nhanh tên chương..." style="margin: 10px 0 0" />
-        <div class="chapter-list" id="chapterList"></div>
+      <button class="mbtn" id="lnBtn" onclick="lnGo()"><div class="spin"></div><span class="btxt" id="lnBtnTxt">Đăng nhập</span></button>
+      <div class="div-or">hoặc</div>
+      <button class="gbtn" onclick="lnGoogle()">
+        <svg class="gico" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.7 2.3 30.2 0 24 0 14.8 0 6.9 5.4 3 13.3l7.8 6C12.7 13 17.9 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 6.9-10.1 6.9-17z"/><path fill="#FBBC05" d="M10.8 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7L2.5 13.3A23.9 23.9 0 0 0 0 24c0 3.8.9 7.4 2.5 10.6l8.3-5.9z"/><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.1 0-11.3-4.1-13.2-9.7l-7.8 6C6.9 42.6 14.8 48 24 48z"/></svg>
+        Tiếp tục với Google
+      </button>
+    </div>
+    <div class="card-foot" id="lnFoot">Chưa có tài khoản? <span onclick="lnSw('reg')">Đăng ký ngay</span></div>
+  </div></div>
+</div>
+
+<!-- PAGE: HOME -->
+<div id="page-home" class="page">
+  <div class="gbar"><div class="gbar-in" id="genreTabs">
+    <button class="gtag on" data-g="">Tất cả</button>
+    <button class="gtag" data-g="Tiên Hiệp">Tiên Hiệp</button>
+    <button class="gtag" data-g="Ngôn Tình">Ngôn Tình</button>
+    <button class="gtag" data-g="Kiếm Hiệp">Kiếm Hiệp</button>
+    <button class="gtag" data-g="Đô Thị">Đô Thị</button>
+    <button class="gtag" data-g="Huyền Huyễn">Huyền Huyễn</button>
+    <button class="gtag" data-g="Xuyên Không">Xuyên Không</button>
+    <button class="gtag" data-g="Trinh Thám">Trinh Thám</button>
+  </div></div>
+  <div class="pg">
+    <div class="cont-bar" id="contBar" onclick="goResume()">
+      <div class="cont-ico">📖</div>
+      <div class="cont-b">
+        <div class="cont-lbl">Tiếp tục đọc</div>
+        <div class="cont-t" id="contT">—</div>
+        <div class="cont-s" id="contS">—</div>
       </div>
+      <div style="color:var(--ac);font-size:1.2rem">›</div>
+    </div>
+    <div id="featWrap"></div>
+    <div class="sec-hd"><div class="sec-t">Tủ truyện</div></div>
+    <div id="gridWrap" class="bgrid">
+      <div class="skel" style="aspect-ratio:2/3;border-radius:9px"></div>
+      <div class="skel" style="aspect-ratio:2/3;border-radius:9px"></div>
+      <div class="skel" style="aspect-ratio:2/3;border-radius:9px"></div>
+      <div class="skel" style="aspect-ratio:2/3;border-radius:9px"></div>
+    </div>
+    <div class="sec-hd"><div class="sec-t">Mới cập nhật</div></div>
+    <div id="recentWrap" class="rlist"></div>
+  </div>
+</div>
+
+<!-- PAGE: STORY -->
+<div id="page-story" class="page">
+  <div id="stHeroWrap"></div>
+  <div id="stSbarWrap"></div>
+  <div class="pg">
+    <div id="stDescWrap"></div>
+    <div class="sec-hd"><div class="sec-t">Danh sách chương</div></div>
+    <div class="chlist" id="stChWrap">
+      <div class="skel" style="height:48px;margin-bottom:8px;border-radius:8px"></div>
+      <div class="skel" style="height:48px;border-radius:8px"></div>
     </div>
   </div>
+</div>
 
-  <section class="reader" id="reader" aria-label="Trình đọc truyện">
-    <div class="reader-progress" id="readerProgress"></div>
-    <header class="reader-top">
-      <div class="reader-title"><strong id="readerStoryTitle">Tên truyện</strong><span id="readerChapterTitle">Chương</span></div>
-      <div class="reader-tools">
-        <input id="readerSearchInput" class="reader-search" type="search" placeholder="Tìm trong chương..." autocomplete="off" />
-        <button class="btn small" id="readerNoteBtn">📝 Ghi chú</button>
-        <button class="btn small" id="readerBookmarkBtn">♡ Lưu</button>
-        <button class="btn small" id="settingsBtn">⚙️ Tuỳ chỉnh</button>
-        <button class="btn small" id="closeReaderBtn">Thoát</button>
-      </div>
-    </header>
-
-    <main class="reader-main" id="readerMain" tabindex="0"><article class="reader-article" id="readerArticle"></article></main>
-
-    <footer class="reader-bottom"><button class="btn" id="prevChapterBtn">← Chương trước</button><span id="chapterIndicator">1 / 1</span><button class="btn primary" id="nextChapterBtn">Chương sau →</button></footer>
-
-    <aside class="settings-drawer" id="settingsDrawer" aria-label="Tuỳ chỉnh đọc">
-      <div class="setting-row"><label for="fontSizeRange">Cỡ chữ: <strong id="fontSizeValue">19</strong>px</label><input id="fontSizeRange" type="range" min="15" max="28" value="19" /></div>
-      <div class="setting-row"><label for="lineHeightRange">Giãn dòng: <strong id="lineHeightValue">1.9</strong></label><input id="lineHeightRange" type="range" min="1.4" max="2.4" step="0.1" value="1.9" /></div>
-      <div class="setting-row"><label for="fontSelect">Font đọc</label><select id="fontSelect"><option value="Georgia, 'Times New Roman', serif">Serif cổ điển</option><option value="Inter, ui-sans-serif, system-ui, sans-serif">Sans hiện đại</option><option value="'Trebuchet MS', ui-sans-serif, sans-serif">Trebuchet mềm</option></select></div>
-      <div class="setting-row"><label for="readerThemeSelect">Màu nền đọc</label><select id="readerThemeSelect"><option value="dark">Đêm xanh</option><option value="sepia">Vàng giấy</option><option value="light">Trắng sáng</option><option value="black">OLED đen</option></select></div>
-      <button class="btn danger" id="resetReaderBtn">Đặt lại tuỳ chỉnh</button>
-    </aside>
-  </section>
-
-  <div class="modal-backdrop" id="notesModal" role="dialog" aria-modal="true">
-    <div class="modal">
-      <div class="modal-header"><div><span class="eyebrow">📝 Sổ tay đọc truyện</span><h2 style="margin:12px 0 4px">Ghi chú & trích dẫn</h2><div class="meta">Lưu cảm nghĩ, câu hay hoặc ý tưởng khi đọc.</div></div><button class="btn" id="closeNotesBtn" aria-label="Đóng ghi chú">✕</button></div>
-      <div class="modal-body">
-        <div class="advanced-grid" style="margin-bottom:16px"><input class="advanced-input" id="noteSearchInput" type="search" placeholder="Tìm trong ghi chú..." /><textarea class="advanced-textarea" id="noteText" placeholder="Viết ghi chú mới tại đây..."></textarea><textarea class="advanced-textarea" id="quoteText" placeholder="Trích dẫn, đoạn văn hay hoặc nội dung đang bôi đen sẽ nằm ở đây..." style="min-height:78px"></textarea><div style="display:flex; gap:8px; flex-wrap:wrap"><button class="btn primary" id="saveNoteBtn">Lưu ghi chú</button><button class="btn" id="useSelectionBtn">Dùng đoạn đang bôi đen</button><button class="btn danger" id="deleteAllNotesBtn">Xoá toàn bộ ghi chú</button></div></div>
-        <div class="mini-list" id="notesList"></div>
+<!-- PAGE: READER -->
+<div id="page-reader" class="page">
+  <div id="rdWrap">
+    <div class="ch-hdr">
+      <div class="crumb" id="rdCrumb" onclick="rdBack()">← Truyện</div>
+      <h1 class="ch-title" id="rdTitle">Đang tải...</h1>
+      <div class="metas">
+        <div class="meta">⏱ <span id="rdTime">—</span></div>
+        <div class="msep"></div>
+        <div class="meta" id="rdProg">0% đã đọc</div>
+        <div class="msep"></div>
+        <div class="meta" id="rdPos">—</div>
       </div>
     </div>
+    <div id="rdContent"></div>
+    <div class="ch-foot">
+      <button class="cnbtn off" id="rdPrevBtn" onclick="rdNav('prev')">← Trước</button>
+      <button class="toc-cir" onclick="openTOC()">📑</button>
+      <button class="cnbtn off" id="rdNextBtn" onclick="rdNav('next')">Tiếp →</button>
+    </div>
+    <div class="swipe-tip">Vuốt trái / phải · ← → bàn phím</div>
   </div>
+</div>
 
-  <div class="modal-backdrop" id="exportModal" role="dialog" aria-modal="true">
-    <div class="modal">
-      <div class="modal-header"><div><span class="eyebrow">💾 Sao lưu</span><h2 style="margin:12px 0 4px">Dữ liệu của bạn</h2><div class="meta">Copy JSON bên dưới để lưu hoặc chuyển sang máy khác.</div></div><button class="btn" id="closeExportBtn" aria-label="Đóng xuất dữ liệu">✕</button></div>
-      <div class="modal-body"><textarea class="advanced-textarea" id="exportText" readonly style="min-height:260px"></textarea><div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px"><button class="btn primary" id="copyExportBtn">Copy JSON</button><button class="btn" id="downloadExportBtn">Tải file .json</button></div></div>
+<!-- PAGE: PROFILE -->
+<div id="page-profile" class="page">
+  <div class="phero">
+    <div class="phero-in" id="pHeroArea">
+      <div class="skel" style="width:90px;height:90px;border-radius:50%;margin-bottom:12px"></div>
+      <div class="skel" style="width:140px;height:20px;border-radius:6px;margin-bottom:8px"></div>
+    </div>
+    <div class="rroad"><div class="rrow" id="rankRoad"></div></div>
+  </div>
+  <div class="sg" id="statsGrid">
+    <div class="sc skel" style="height:70px"></div>
+    <div class="sc skel" style="height:70px"></div>
+    <div class="sc skel" style="height:70px"></div>
+  </div>
+  <div class="pg-md">
+    <div class="sec-hd" style="margin-top:16px"><div class="sec-t">Đổi tên hiển thị</div></div>
+    <div class="name-row">
+      <input type="text" id="pNameInput" placeholder="Tên hiển thị..." maxlength="30">
+      <button class="save-btn" id="pSaveBtn" onclick="pSaveName()">Lưu</button>
+    </div>
+    <div class="p-tabs">
+      <div class="p-tab on" onclick="pTab('Bm')">🔖 Đã lưu</div>
+      <div class="p-tab" onclick="pTab('Hist')">🕑 Gần đây</div>
+      <div class="p-tab" onclick="pTab('Done')">✅ Hoàn thành</div>
+    </div>
+    <div id="pTabBm" class="slist"></div>
+    <div id="pTabHist" class="slist" style="display:none"></div>
+    <div id="pTabDone" class="slist" style="display:none"></div>
+    <button class="logout-btn" onclick="doLogout()">🚪 Đăng xuất</button>
+  </div>
+</div>
+
+<!-- OVERLAYS -->
+<div id="sOv" onclick="mcl(event,'sOv')"><div id="sPanel">
+  <div class="p-handle"></div><div class="p-t">Tùy chỉnh đọc</div>
+  <div class="srow"><div class="slbl">Giao diện</div><div class="opts">
+    <button class="opt" data-t="light"  onclick="setTheme('light')">☀️ Sáng</button>
+    <button class="opt" data-t="sepia"  onclick="setTheme('sepia')">🌅 Sepia</button>
+    <button class="opt" data-t="dark"   onclick="setTheme('dark')">🌙 Tối</button>
+  </div></div>
+  <div class="srow"><div class="slbl">Cỡ chữ</div>
+    <div class="fs-row">
+      <button class="fsbtn" onclick="adjFS(-1)">A−</button>
+      <div class="fs-sl" onclick="slClick(event)"><div class="fs-fill" id="fsFill"></div></div>
+      <button class="fsbtn" onclick="adjFS(1)">A+</button>
+      <div class="fs-val" id="fsVal">17px</div>
     </div>
   </div>
+  <div class="srow"><div class="slbl">Font</div><div class="opts">
+    <button class="opt" data-f="sans"  onclick="setFont('sans')"  style="font-family:sans-serif">Sans</button>
+    <button class="opt" data-f="serif" onclick="setFont('serif')" style="font-family:Georgia,serif">Serif</button>
+    <button class="opt" data-f="mono"  onclick="setFont('mono')"  style="font-family:monospace">Mono</button>
+  </div></div>
+  <div class="srow"><div class="slbl">Giãn dòng</div><div class="opts">
+    <button class="opt" data-lh="tight"  onclick="setLH('tight')">Hẹp</button>
+    <button class="opt" data-lh="normal" onclick="setLH('normal')">Vừa</button>
+    <button class="opt" data-lh="loose"  onclick="setLH('loose')">Rộng</button>
+  </div></div>
+  <div class="srow"><div class="slbl">Độ rộng</div><div class="opts">
+    <button class="opt" data-w="sm" onclick="setWidth('sm')">Hẹp</button>
+    <button class="opt" data-w="md" onclick="setWidth('md')">Vừa</button>
+    <button class="opt" data-w="lg" onclick="setWidth('lg')">Rộng</button>
+  </div></div>
+</div></div>
 
-  <div class="toast" id="toast">Đã lưu</div>
+<div id="tOv" onclick="mcl(event,'tOv')"><div id="tPanel">
+  <div class="toc-hdr"><div class="toc-ht">📑 Mục lục</div><button class="toc-x" onclick="closeTOC()">✕</button></div>
+  <div class="toc-sc" id="tocList"></div>
+</div></div>
 
-  <script>
-    'use strict';
+<div id="toast">✓</div>
+<input type="file" id="avInput" accept="image/*" style="display:none">
 
-    const STORAGE_KEYS = {
-      bookmarks: 'moonnovel_bookmarks_v3',
-      history: 'moonnovel_history_v3',
-      theme: 'moonnovel_theme_v3',
-      reader: 'moonnovel_reader_settings_v3',
-      notes: 'moonnovel_notes_v3',
-      goal: 'moonnovel_goal_v3',
-      sessions: 'moonnovel_sessions_v3'
-    };
+<!-- ════════════════════════════════════════
+     SETTINGS SCRIPT (runs synchronously)
+════════════════════════════════════════ -->
+<script>
+const TK='nv_theme',SK2='nv_settings';
+const FM=13,FX=26,FR=FX-FM;
+let S={theme:'dark',fs:17,font:'sans',lh:'normal',width:'md'};
+function loadS(){try{Object.assign(S,JSON.parse(localStorage.getItem(SK2)||'{}'));const t=localStorage.getItem(TK);if(t)S.theme=t;}catch(e){}}
+function saveS(){localStorage.setItem(SK2,JSON.stringify(S));localStorage.setItem(TK,S.theme);}
+function applyS(){
+  document.documentElement.setAttribute('data-theme',S.theme);
+  document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===S.theme));
+  const c=document.getElementById('rdContent');if(c)c.style.fontSize=S.fs+'px';
+  const v=document.getElementById('fsVal');if(v)v.textContent=S.fs+'px';
+  const f=document.getElementById('fsFill');if(f)f.style.width=((S.fs-FM)/FR*100)+'%';
+  const pg=document.getElementById('page-reader');
+  if(pg){pg.classList.remove('f-serif','f-mono','lh-tight','lh-loose');if(S.font!=='sans')pg.classList.add('f-'+S.font);if(S.lh!=='normal')pg.classList.add('lh-'+S.lh);}
+  const w=document.getElementById('rdWrap');if(w)w.className=S.width==='md'?'':('w-'+S.width);
+  document.querySelectorAll('[data-f]').forEach(b=>b.classList.toggle('on',b.dataset.f===S.font));
+  document.querySelectorAll('[data-lh]').forEach(b=>b.classList.toggle('on',b.dataset.lh===S.lh));
+  document.querySelectorAll('[data-w]').forEach(b=>b.classList.toggle('on',b.dataset.w===S.width));
+  // theme buttons
+  const t=document.documentElement.getAttribute('data-theme');
+  document.querySelectorAll('#themeBtn,#lnTBtn').forEach(b=>{if(b)b.textContent=t==='dark'?'☀️':'🌙';});
+  const si=document.getElementById('sbThIco');if(si)si.textContent=t==='dark'?'☀️':'🌙';
+}
+window.setTheme=t=>{S.theme=t;saveS();applyS();};
+window.setFont=f=>{S.font=f;saveS();applyS();};
+window.setLH=lh=>{S.lh=lh;saveS();applyS();};
+window.setWidth=w=>{S.width=w;saveS();applyS();};
+window.adjFS=d=>{S.fs=Math.max(FM,Math.min(FX,S.fs+d));saveS();applyS();};
+window.slClick=e=>{const r=e.currentTarget.getBoundingClientRect();S.fs=Math.round(FM+(e.clientX-r.left)/r.width*FR);saveS();applyS();};
+window.toggleTheme=()=>setTheme(S.theme==='dark'?'light':'dark');
+window.openSettings=()=>document.getElementById('sOv').classList.add('on');
+window.openTOC=()=>document.getElementById('tOv').classList.add('on');
+window.closeTOC=()=>document.getElementById('tOv').classList.remove('on');
+window.mcl=(e,id)=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('on');};
+window.openSB=()=>document.getElementById('sbOv').classList.add('on');
+window.closeSB=e=>{if(!e||e.target===document.getElementById('sbOv'))document.getElementById('sbOv').classList.remove('on');};
+window.showToast=m=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);};
 
-    const stories = [
-      story('than-kiem-luu-vang', 'Thần Kiếm Lưu Vang', 'Lam Hạ', 'Đang ra', ['Tiên hiệp', 'Phiêu lưu', 'Huyền huyễn'], 4.8, 124500, '2026-05-10', true, ['#7c3aed', '#06b6d4'], 'Một thiếu niên nhặt được mảnh kiếm cổ có thể nghe tiếng gió của quá khứ, từ đó bước vào hành trình truy tìm bí mật của các tiên môn thất lạc.', ['Gió nổi dưới chân núi', 'Mảnh kiếm biết hát', 'Khách lạ trong quán trà', 'Đêm vào Linh Khê cốc', 'Lời thề dưới trăng bạc', 'Cửa đá không tên']),
-      story('quan-ca-phe-luc-nua-dem', 'Quán Cà Phê Lúc Nửa Đêm', 'Mộc Miên', 'Hoàn thành', ['Đời thường', 'Chữa lành', 'Lãng mạn'], 4.9, 98200, '2026-04-26', true, ['#f97316', '#ec4899'], 'Giữa thành phố không ngủ, một quán cà phê chỉ mở sau 0 giờ đón những vị khách mang theo điều chưa kịp nói.', ['Ly latte cho người lạc đường', 'Chiếc ô màu xanh', 'Bức thư chưa gửi', 'Bản nhạc trên tầng hai', 'Khi bình minh gõ cửa']),
-      story('ho-so-so-17', 'Hồ Sơ Số 17', 'Hàn Vũ', 'Đang ra', ['Trinh thám', 'Kinh dị', 'Tâm lý'], 4.7, 156300, '2026-05-08', true, ['#111827', '#dc2626'], 'Một điều tra viên nhận lại hồ sơ bị niêm phong mười năm trước và phát hiện tất cả nhân chứng đều biến mất vào cùng một ngày.', ['Con dấu màu đỏ', 'Camera ở hành lang B', 'Người gọi lúc 03:17', 'Căn phòng không có cửa sổ', 'Dấu chân dưới tầng hầm']),
-      story('vu-tru-trong-chiec-hop', 'Vũ Trụ Trong Chiếc Hộp', 'Kha Ngân', 'Hoàn thành', ['Khoa học viễn tưởng', 'Phiêu lưu'], 4.6, 75400, '2026-03-29', false, ['#2563eb', '#14b8a6'], 'Một kỹ sư trẻ vô tình kích hoạt chiếc hộp lượng tử có khả năng mở cửa đến các phiên bản khác nhau của Trái Đất.', ['Tín hiệu từ vật thể lạ', 'Bản đồ không thuộc về thế giới này', 'Thành phố lộn ngược', 'Lựa chọn của bản thể thứ ba', 'Đóng cánh cửa cuối cùng']),
-      story('long-thanh-bat-da', 'Long Thành Bất Dạ', 'Tạ Minh', 'Đang ra', ['Kiếm hiệp', 'Cổ trang', 'Ân oán'], 4.5, 112870, '2026-05-01', false, ['#b45309', '#7f1d1d'], 'Long Thành không bao giờ tắt đèn, bởi dưới ánh sáng ấy là vô số lời hứa, bí mật và những cuộc báo thù kéo dài qua ba thế hệ.', ['Đèn đỏ trên cổng Bắc', 'Khách qua cầu Vân Yên', 'Thanh đao của người câm', 'Bữa tiệc trong mưa', 'Nợ máu dưới mái ngói cũ']),
-      story('ngay-em-den-tuong-lai', 'Ngày Em Đến Từ Tương Lai', 'An Nhiên', 'Hoàn thành', ['Lãng mạn', 'Xuyên không', 'Học đường'], 4.8, 134900, '2026-04-12', true, ['#db2777', '#8b5cf6'], 'Một cô gái xuất hiện trước cổng trường với cuốn nhật ký ghi chính xác mọi chuyện sắp xảy ra, trừ việc cô sẽ yêu ai.', ['Ngày thứ hai bị viết lại', 'Cuốn nhật ký màu tím', 'Tin nhắn gửi từ năm sau', 'Lời hẹn ở sân thượng', 'Tương lai không có em'])
-    ];
+// Show loading, apply theme immediately
+loadS();applyS();
 
-    const state = {
-      tab: 'all',
-      selectedStoryId: null,
-      readerStoryId: null,
-      readerChapterIndex: 0,
-      bookmarks: readJSON(STORAGE_KEYS.bookmarks, []),
-      history: readJSON(STORAGE_KEYS.history, {}),
-      notes: readJSON(STORAGE_KEYS.notes, []),
-      goal: readJSON(STORAGE_KEYS.goal, { minutes: 20 }),
-      sessions: readJSON(STORAGE_KEYS.sessions, {}),
-      timer: null,
-      readerSettings: readJSON(STORAGE_KEYS.reader, {
-        fontSize: 19,
-        lineHeight: 1.9,
-        font: "Georgia, 'Times New Roman', serif",
-        theme: 'dark'
-      })
-    };
+// Reveal body with loader visible
+document.body.classList.add('rdy');
 
-    const $ = (selector) => document.querySelector(selector);
-    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;
+  if(e.key==='Escape'){['sOv','tOv','sbOv'].forEach(id=>document.getElementById(id).classList.remove('on'));}
+  if(document.body.classList.contains('in-reader')){
+    if(e.key==='ArrowRight')window.rdNav?.('next');
+    if(e.key==='ArrowLeft')window.rdNav?.('prev');
+    if(e.key.toLowerCase()==='s')window.openSettings();
+    if(e.key.toLowerCase()==='t')window.openTOC();
+  }
+});
+let _tx=0;
+document.addEventListener('touchstart',e=>{_tx=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{if(document.body.classList.contains('in-reader')){const dx=e.changedTouches[0].clientX-_tx;if(Math.abs(dx)>75)window.rdNav?.(dx<0?'next':'prev');}},{passive:true});
+</script>
 
-    const els = {
-      html: document.documentElement,
-      storyGrid: $('#storyGrid'), emptyState: $('#emptyState'), searchInput: $('#searchInput'), genreFilter: $('#genreFilter'), statusFilter: $('#statusFilter'), sortSelect: $('#sortSelect'), tabs: $$('.tab'), themeToggle: $('#themeToggle'),
-      topList: $('#topList'), continueList: $('#continueList'), statStories: $('#statStories'), statBookmarks: $('#statBookmarks'), statHistory: $('#statHistory'), statBest: $('#statBest'),
-      detailModal: $('#detailModal'), closeModalBtn: $('#closeModalBtn'), modalStatus: $('#modalStatus'), modalTitle: $('#modalTitle'), modalMeta: $('#modalMeta'), modalDesc: $('#modalDesc'), modalTags: $('#modalTags'), chapterList: $('#chapterList'), chapterSearchInput: $('#chapterSearchInput'), readFirstBtn: $('#readFirstBtn'), readContinueBtn: $('#readContinueBtn'), modalBookmarkBtn: $('#modalBookmarkBtn'),
-      reader: $('#reader'), readerMain: $('#readerMain'), readerArticle: $('#readerArticle'), readerStoryTitle: $('#readerStoryTitle'), readerChapterTitle: $('#readerChapterTitle'), readerProgress: $('#readerProgress'), readerSearchInput: $('#readerSearchInput'), readerNoteBtn: $('#readerNoteBtn'), readerBookmarkBtn: $('#readerBookmarkBtn'), settingsBtn: $('#settingsBtn'), settingsDrawer: $('#settingsDrawer'), closeReaderBtn: $('#closeReaderBtn'), prevChapterBtn: $('#prevChapterBtn'), nextChapterBtn: $('#nextChapterBtn'), chapterIndicator: $('#chapterIndicator'),
-      fontSizeRange: $('#fontSizeRange'), fontSizeValue: $('#fontSizeValue'), lineHeightRange: $('#lineHeightRange'), lineHeightValue: $('#lineHeightValue'), fontSelect: $('#fontSelect'), readerThemeSelect: $('#readerThemeSelect'), resetReaderBtn: $('#resetReaderBtn'), startReadingBtn: $('#startReadingBtn'), randomBtn: $('#randomBtn'),
-      advNoteCount: $('#advNoteCount'), advLastStory: $('#advLastStory'), advGoalRing: $('#advGoalRing'), advGoalPercent: $('#advGoalPercent'), advTodayMinutes: $('#advTodayMinutes'), advGoalText: $('#advGoalText'), advGoalInput: $('#advGoalInput'), advSaveGoalBtn: $('#advSaveGoalBtn'), advOpenNotesBtn: $('#advOpenNotesBtn'), advExportBtn: $('#advExportBtn'), advImportInput: $('#advImportInput'), advClearHistoryBtn: $('#advClearHistoryBtn'),
-      notesModal: $('#notesModal'), closeNotesBtn: $('#closeNotesBtn'), noteSearchInput: $('#noteSearchInput'), noteText: $('#noteText'), quoteText: $('#quoteText'), saveNoteBtn: $('#saveNoteBtn'), useSelectionBtn: $('#useSelectionBtn'), deleteAllNotesBtn: $('#deleteAllNotesBtn'), notesList: $('#notesList'),
-      exportModal: $('#exportModal'), closeExportBtn: $('#closeExportBtn'), exportText: $('#exportText'), copyExportBtn: $('#copyExportBtn'), downloadExportBtn: $('#downloadExportBtn'), toast: $('#toast')
-    };
+<!-- ════════════════════════════════════════
+     FIREBASE + APP LOGIC
+════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-    init();
+const CFG={apiKey:"AIzaSyA-4dTbXwNWRC8QRQFSqqzbEoY15p2wRNk",authDomain:"authentication-b1309.firebaseapp.com",projectId:"authentication-b1309",storageBucket:"authentication-b1309.firebasestorage.app",messagingSenderId:"112918496931",appId:"1:112918496931:web:a8f03fb7d258058da6e116"};
+const _app=getApps().length?getApps()[0]:initializeApp(CFG);
+const auth=getAuth(_app),db=getFirestore(_app),storage=getStorage(_app);
 
-    function init() {
-      const savedTheme = localStorage.getItem(STORAGE_KEYS.theme) || 'dark';
-      els.html.dataset.theme = savedTheme;
-      els.themeToggle.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
-      populateGenres();
-      applyReaderSettings();
-      bindEvents();
-      renderAll();
-      runSelfTests();
-    }
+const RANKS=[{n:'Phàm Nhân',x:0,c:'#9A8F80',i:'🧑'},{n:'Luyện Khí',x:100,c:'#52C41A',i:'🌿'},{n:'Trúc Cơ',x:500,c:'#1890FF',i:'💧'},{n:'Kim Đan',x:1500,c:'#722ED1',i:'💜'},{n:'Nguyên Anh',x:4000,c:'#FA8C16',i:'🔥'},{n:'Hóa Thần',x:9000,c:'#F5222D',i:'⚡'},{n:'Luyện Hư',x:18000,c:'#EB2F96',i:'🌸'},{n:'Hợp Thể',x:35000,c:'#13C2C2',i:'🌊'},{n:'Đại Thừa',x:65000,c:'#FFD700',i:'👑'},{n:'Độ Kiếp',x:100000,c:'#FF6B35',i:'⚔️'}];
+function getRank(xp){let r=RANKS[0];for(const x of RANKS){if(xp>=x.x)r=x;else break;}return r;}
+function getXpProg(xp){const i=RANKS.findLastIndex(r=>xp>=r.x);const c=RANKS[i],n=RANKS[i+1];if(!n)return 100;return Math.round((xp-c.x)/(n.x-c.x)*100);}
 
-    function bindEvents() {
-      ['input', 'change'].forEach(() => {});
-      els.searchInput.addEventListener('input', renderStories);
-      els.genreFilter.addEventListener('change', renderStories);
-      els.statusFilter.addEventListener('change', renderStories);
-      els.sortSelect.addEventListener('change', renderStories);
-      els.tabs.forEach(tab => tab.addEventListener('click', () => setTab(tab.dataset.tab)));
-      els.themeToggle.addEventListener('click', toggleTheme);
-      els.closeModalBtn.addEventListener('click', closeModal);
-      els.detailModal.addEventListener('click', event => { if (event.target === els.detailModal) closeModal(); });
-      els.readFirstBtn.addEventListener('click', () => openReader(state.selectedStoryId, 0));
-      els.readContinueBtn.addEventListener('click', () => { const storyObj = getSelectedStory(); if (storyObj) openReader(storyObj.id, state.history[storyObj.id]?.chapterIndex || 0); });
-      els.modalBookmarkBtn.addEventListener('click', () => toggleBookmark(state.selectedStoryId));
-      els.chapterSearchInput.addEventListener('input', filterChaptersInModal);
-      els.closeReaderBtn.addEventListener('click', closeReader);
-      els.readerMain.addEventListener('scroll', updateReaderProgress);
-      els.settingsBtn.addEventListener('click', () => els.settingsDrawer.classList.toggle('open'));
-      els.prevChapterBtn.addEventListener('click', previousChapter);
-      els.nextChapterBtn.addEventListener('click', nextChapter);
-      els.readerBookmarkBtn.addEventListener('click', () => toggleBookmark(state.readerStoryId));
-      els.readerSearchInput.addEventListener('input', () => highlightReaderText(els.readerSearchInput.value.trim()));
-      els.readerNoteBtn.addEventListener('click', () => openNotesModal(true));
-      els.fontSizeRange.addEventListener('input', event => updateReaderSetting('fontSize', Number(event.target.value)));
-      els.lineHeightRange.addEventListener('input', event => updateReaderSetting('lineHeight', Number(event.target.value)));
-      els.fontSelect.addEventListener('change', event => updateReaderSetting('font', event.target.value));
-      els.readerThemeSelect.addEventListener('change', event => updateReaderSetting('theme', event.target.value));
-      els.resetReaderBtn.addEventListener('click', resetReaderSettings);
-      els.startReadingBtn.addEventListener('click', () => openReader(stories[0].id, state.history[stories[0].id]?.chapterIndex || 0));
-      els.randomBtn.addEventListener('click', () => openStoryModal(stories[Math.floor(Math.random() * stories.length)].id));
-      els.advOpenNotesBtn.addEventListener('click', () => openNotesModal(false));
-      els.closeNotesBtn.addEventListener('click', closeNotesModal);
-      els.notesModal.addEventListener('click', event => { if (event.target === els.notesModal) closeNotesModal(); });
-      els.noteSearchInput.addEventListener('input', renderNotesList);
-      els.saveNoteBtn.addEventListener('click', saveCurrentNote);
-      els.useSelectionBtn.addEventListener('click', () => useCurrentSelectionAsQuote(true));
-      els.deleteAllNotesBtn.addEventListener('click', deleteAllNotes);
-      els.advSaveGoalBtn.addEventListener('click', saveGoal);
-      els.advGoalInput.addEventListener('keydown', event => { if (event.key === 'Enter') saveGoal(); });
-      els.advExportBtn.addEventListener('click', openExportModal);
-      els.closeExportBtn.addEventListener('click', closeExportModal);
-      els.exportModal.addEventListener('click', event => { if (event.target === els.exportModal) closeExportModal(); });
-      els.copyExportBtn.addEventListener('click', copyExportJSON);
-      els.downloadExportBtn.addEventListener('click', downloadExportJSON);
-      els.advImportInput.addEventListener('change', importJSONFile);
-      els.advClearHistoryBtn.addEventListener('click', clearReadingHistory);
-      document.addEventListener('visibilitychange', () => { if (document.hidden) stopActiveReadingTimer(); else if (els.reader.classList.contains('open')) startActiveReadingTimer(); });
-      document.addEventListener('keydown', handleShortcuts);
-    }
+let _user=null,_ud=null,_stories=[],_curStory=null,_curCh=null;
 
-    function setTab(tabName) {
-      state.tab = tabName;
-      els.tabs.forEach(item => item.classList.toggle('active', item.dataset.tab === tabName));
-      renderStories();
-    }
+async function ensureUser(user){
+  const ref=doc(db,'users',user.uid);const snap=await getDoc(ref);const today=new Date().toDateString();
+  if(!snap.exists()){const d={displayName:user.displayName||user.email.split('@')[0],email:user.email,avatarUrl:user.photoURL||'',xp:10,createdAt:Date.now(),lastLoginDate:today,loginStreak:1,bookmarks:[],history:[],readChapters:{},completedStories:[]};await setDoc(ref,d);return d;}
+  const d=snap.data();if(d.lastLoginDate!==today){const xp=(d.xp||0)+10;await updateDoc(ref,{lastLoginDate:today,xp,loginStreak:(d.loginStreak||0)+1});return{...d,xp};}return d;
+}
 
-    function populateGenres() {
-      const genres = [...new Set(stories.flatMap(item => item.genres))].sort((a, b) => a.localeCompare(b, 'vi'));
-      els.genreFilter.innerHTML += genres.map(genre => `<option value="${escapeHTML(genre)}">${escapeHTML(genre)}</option>`).join('');
-    }
+function fillSB(){
+  if(!_ud||!_user)return;
+  const xp=_ud.xp||0,rk=getRank(xp),prog=getXpProg(xp);
+  const name=_ud.displayName||_user.email?.split('@')[0]||'?';const ini=name[0].toUpperCase();
+  const avEl=document.getElementById('sbAv');avEl.style.background=rk.c;
+  avEl.innerHTML=_ud.avatarUrl?`<img src="${_ud.avatarUrl}" onerror="this.style.display='none'"><span style="position:absolute">${ini}</span>`:ini;
+  document.getElementById('sbName').textContent=name;
+  document.getElementById('sbRank').textContent=rk.i+' '+rk.n;document.getElementById('sbRank').style.color=rk.c;
+  document.getElementById('sbXp').textContent=xp.toLocaleString()+' XP';
+  document.getElementById('sbXfill').style.width=prog+'%';document.getElementById('sbXfill').style.background=rk.c;
+}
 
-    function renderAll() {
-      renderStories();
-      renderTopList();
-      renderContinueList();
-      renderStats();
-      renderShelfStats();
-      renderGoalStats();
-      renderNotesList();
-    }
+/* ── HIDE LOADER ── */
+function hideLoader(){
+  const l=document.getElementById('loader');
+  l.classList.add('hide');
+  setTimeout(()=>l.style.display='none',400);
+}
 
-    function renderStories() {
-      const query = normalize(els.searchInput.value);
-      const genre = els.genreFilter.value;
-      const status = els.statusFilter.value;
-      const sort = els.sortSelect.value;
-      let filtered = stories.filter(item => {
-        const inSearch = normalize(`${item.title} ${item.author} ${item.genres.join(' ')} ${item.description}`).includes(query);
-        const inGenre = genre === 'all' || item.genres.includes(genre);
-        const inStatus = status === 'all' || item.status === status;
-        const inTab = state.tab === 'all' || (state.tab === 'hot' && item.hot) || (state.tab === 'bookmarks' && state.bookmarks.includes(item.id)) || (state.tab === 'history' && Boolean(state.history[item.id]));
-        return inSearch && inGenre && inStatus && inTab;
-      });
-      filtered = sortStories(filtered, sort);
-      els.emptyState.style.display = filtered.length ? 'none' : 'block';
-      els.storyGrid.innerHTML = filtered.map(storyCardTemplate).join('');
-      $$('[data-open-story]').forEach(button => button.addEventListener('click', () => openStoryModal(button.dataset.openStory)));
-      $$('[data-read-story]').forEach(button => button.addEventListener('click', () => openReader(button.dataset.readStory, state.history[button.dataset.readStory]?.chapterIndex || 0)));
-      $$('[data-bookmark]').forEach(button => button.addEventListener('click', event => { event.stopPropagation(); toggleBookmark(button.dataset.bookmark); }));
-    }
+/* ── ROUTER ── */
+window.nav=hash=>location.hash='#'+hash;
 
-    function storyCardTemplate(item) {
-      const saved = state.history[item.id];
-      const progress = saved ? Math.round(((saved.chapterIndex + 1) / item.chapters.length) * 100) : 0;
-      const bookmarked = state.bookmarks.includes(item.id);
-      return `<article class="story-card" style="--cover-a:${item.colors[0]};--cover-b:${item.colors[1]}"><div class="cover" data-open-story="${item.id}" role="button" tabindex="0"><div><span class="badge">${item.hot ? '🔥 Hot' : '📚 Truyện hay'}</span><h3>${escapeHTML(item.title)}</h3></div></div><div class="story-body"><div class="meta"><span>✍️ ${escapeHTML(item.author)}</span><span>⭐ ${item.rating}</span><span>👁️ ${formatNumber(item.views)}</span></div><p class="desc">${escapeHTML(item.description)}</p><div class="tags">${item.genres.slice(0, 3).map(tag => `<span class="tag">${escapeHTML(tag)}</span>`).join('')}</div>${saved ? `<div class="progress-wrap" title="Tiến độ đọc"><div class="progress-bar" style="width:${progress}%"></div></div>` : ''}<div class="story-actions" style="margin-top:12px"><button class="btn primary" data-read-story="${item.id}">${saved ? 'Đọc tiếp' : 'Đọc ngay'}</button><button class="btn" data-bookmark="${item.id}" aria-label="Lưu truyện">${bookmarked ? '♥' : '♡'}</button></div></div></article>`;
-    }
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById('page-'+name);
+  if(pg)pg.classList.add('active');
+  document.body.classList.toggle('in-reader',name==='reader');
+  if(name!=='reader'){document.getElementById('rdNav').classList.remove('hide');window._rdClean?.();}
+  if(name!=='reader'&&name!=='login')window.scrollTo(0,0);
+}
 
-    function renderTopList() {
-      els.topList.innerHTML = [...stories].sort((a, b) => b.views - a.views).slice(0, 4).map(item => miniItemTemplate(item, `⭐ ${item.rating} · ${formatNumber(item.views)} lượt`)).join('');
-      bindMiniItems(els.topList, false);
-    }
+async function route(){
+  const h=location.hash.slice(1)||'home';
+  const qi=h.indexOf('?');
+  const page=qi>=0?h.slice(0,qi):h;
+  const params=new URLSearchParams(qi>=0?h.slice(qi+1):'');
 
-    function renderContinueList() {
-      const items = Object.values(state.history).sort((a, b) => b.readAt - a.readAt).map(item => stories.find(storyItem => storyItem.id === item.storyId)).filter(Boolean).slice(0, 4);
-      els.continueList.innerHTML = items.length ? items.map(item => miniItemTemplate(item, `Đang ở chương ${(state.history[item.id]?.chapterIndex || 0) + 1}`)).join('') : '<p style="color:var(--muted);line-height:1.6;margin:0">Bạn chưa đọc truyện nào. Mở một truyện để bắt đầu lưu lịch sử nhé.</p>';
-      bindMiniItems(els.continueList, true);
-    }
+  if(!_user&&page!=='login'){window.nav('login');return;}
+  if(_user&&page==='login'){window.nav('home');return;}
 
-    function miniItemTemplate(item, subtitle) {
-      return `<button class="mini-item" data-mini-story="${item.id}" style="--cover-a:${item.colors[0]};--cover-b:${item.colors[1]}; width:100%; color:inherit; text-align:left"><span class="mini-cover"></span><span><strong>${escapeHTML(item.title)}</strong><span>${escapeHTML(subtitle)}</span></span><span>›</span></button>`;
-    }
+  showPage(page);
 
-    function bindMiniItems(root, readDirect = false) {
-      root.querySelectorAll('[data-mini-story]').forEach(button => button.addEventListener('click', () => readDirect ? openReader(button.dataset.miniStory, state.history[button.dataset.miniStory]?.chapterIndex || 0) : openStoryModal(button.dataset.miniStory)));
-    }
+  try{
+    if(page==='home')   await renderHome();
+    else if(page==='story')  await renderStory(params.get('id'));
+    else if(page==='reader') await renderReader(params.get('id'),parseInt(params.get('ch'))||1);
+    else if(page==='profile')await renderProfile();
+    else if(page==='login')  renderLoginHdr();
+  }catch(err){console.error('render error',err);}
+}
 
-    function renderStats() {
-      const best = Object.values(state.history).reduce((max, item) => {
-        const found = stories.find(s => s.id === item.storyId);
-        return found ? Math.max(max, Math.round(((item.chapterIndex + 1) / found.chapters.length) * 100)) : max;
-      }, 0);
-      els.statStories.textContent = stories.length;
-      els.statBookmarks.textContent = state.bookmarks.length;
-      els.statHistory.textContent = Object.keys(state.history).length;
-      els.statBest.textContent = `${best}%`;
-    }
+window.addEventListener('hashchange',()=>{if(_user!==undefined)route();});
 
-    function openStoryModal(storyId) {
-      state.selectedStoryId = storyId;
-      const item = getSelectedStory();
-      if (!item) return;
-      const bookmarked = state.bookmarks.includes(item.id);
-      const saved = state.history[item.id];
-      els.modalStatus.textContent = item.status;
-      els.modalTitle.textContent = item.title;
-      els.modalMeta.innerHTML = `<span>✍️ ${escapeHTML(item.author)}</span><span>⭐ ${item.rating}</span><span>👁️ ${formatNumber(item.views)}</span><span>📖 ${item.chapters.length} chương</span><span>🕒 ${formatDate(item.updated)}</span>`;
-      els.modalDesc.textContent = item.description;
-      els.modalTags.innerHTML = item.genres.map(tag => `<span class="tag">${escapeHTML(tag)}</span>`).join('');
-      els.modalBookmarkBtn.textContent = bookmarked ? '♥ Đã lưu truyện' : '♡ Lưu truyện';
-      els.readContinueBtn.disabled = !saved;
-      els.readContinueBtn.textContent = saved ? `Đọc tiếp chương ${saved.chapterIndex + 1}` : 'Chưa có lịch sử';
-      els.chapterSearchInput.value = '';
-      renderChapterRows(item);
-      els.detailModal.classList.add('open');
-    }
+/* ── AUTH STATE ── */
+onAuthStateChanged(auth,async user=>{
+  _user=user;
+  if(user){
+    try{_ud=await ensureUser(user);fillSB();}
+    catch(e){console.warn('user doc error',e);}
+  }
+  hideLoader();
+  route();
+});
 
-    function renderChapterRows(item) {
-      els.chapterList.innerHTML = item.chapters.map((chapter, index) => `<button class="chapter-row" data-chapter-index="${index}" style="width:100%; color:inherit; text-align:left"><span>${index + 1}. ${escapeHTML(chapter.title)}</span><strong>${state.history[item.id]?.chapterIndex === index ? 'Đang đọc' : 'Đọc'}</strong></button>`).join('');
-      els.chapterList.querySelectorAll('[data-chapter-index]').forEach(button => button.addEventListener('click', () => openReader(item.id, Number(button.dataset.chapterIndex))));
-    }
+window.doLogout=()=>signOut(auth).then(()=>window.nav('login'));
 
-    function filterChaptersInModal() {
-      const item = getSelectedStory();
-      if (!item) return;
-      const keyword = normalize(els.chapterSearchInput.value);
-      els.chapterList.querySelectorAll('[data-chapter-index]').forEach(row => {
-        const chapter = item.chapters[Number(row.dataset.chapterIndex)];
-        row.style.display = normalize(chapter.title).includes(keyword) ? 'flex' : 'none';
-      });
-    }
+/* ── LOGIN ── */
+const lnE={'auth/user-not-found':'Không tìm thấy tài khoản.','auth/wrong-password':'Mật khẩu không đúng.','auth/invalid-email':'Email không hợp lệ.','auth/email-already-in-use':'Email đã được đăng ký.','auth/weak-password':'Mật khẩu ≥ 6 ký tự.','auth/too-many-requests':'Quá nhiều lần thử.','auth/popup-closed-by-user':'Đã đóng cửa sổ.','auth/invalid-credential':'Email hoặc mật khẩu không đúng.'};
+let lnMode='login';
+window.lnSw=m=>{lnMode=m;document.getElementById('tl').classList.toggle('on',m==='login');document.getElementById('tr').classList.toggle('on',m==='reg');document.getElementById('lnCfP').classList.toggle('on',m==='reg');document.getElementById('lnBtnTxt').textContent=m==='login'?'Đăng nhập':'Tạo tài khoản';document.getElementById('lnFoot').innerHTML=m==='login'?'Chưa có tài khoản? <span onclick="lnSw(\'reg\')">Đăng ký ngay</span>':'Đã có tài khoản? <span onclick="lnSw(\'login\')">Đăng nhập</span>';document.getElementById('lnMsg').className='emsg';};
+function lnMsg(t,c){const e=document.getElementById('lnMsg');e.textContent=t;e.className='emsg'+(c?' '+c:'');}
+function lnLoad(on){const b=document.getElementById('lnBtn');b.classList.toggle('loading',on);b.disabled=on;}
+window.lnGo=async()=>{
+  lnMsg('','');const em=document.getElementById('lnEm').value.trim(),pw=document.getElementById('lnPw').value;
+  if(!em||!pw){lnMsg('Vui lòng điền đầy đủ.','err');return;}
+  if(lnMode==='reg'){const cf=document.getElementById('lnCf').value;if(pw!==cf){lnMsg('Mật khẩu không khớp.','err');return;}if(pw.length<6){lnMsg('Mật khẩu ≥ 6 ký tự.','err');return;}}
+  lnLoad(true);
+  try{if(lnMode==='login')await signInWithEmailAndPassword(auth,em,pw);else await createUserWithEmailAndPassword(auth,em,pw);lnMsg('✓ Thành công!','ok');}
+  catch(e){lnMsg(lnE[e.code]||'Đã xảy ra lỗi.','err');lnLoad(false);}
+};
+window.lnGoogle=async()=>{lnMsg('','');try{await signInWithPopup(auth,new GoogleAuthProvider());}catch(e){lnMsg(lnE[e.code]||'Lỗi Google.','err');}};
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('page-login').classList.contains('active'))window.lnGo();});
 
-    function closeModal() { els.detailModal.classList.remove('open'); }
+function renderLoginHdr(){document.getElementById('hdrIn').innerHTML='';}
 
-    function openReader(storyId, chapterIndex = 0) {
-      const item = stories.find(storyItem => storyItem.id === storyId);
-      if (!item) return;
-      state.readerStoryId = storyId;
-      state.readerChapterIndex = Math.max(0, Math.min(chapterIndex, item.chapters.length - 1));
-      closeModal();
-      els.reader.classList.add('open');
-      els.settingsDrawer.classList.remove('open');
-      document.body.style.overflow = 'hidden';
-      renderReader();
-      saveHistory();
-      startActiveReadingTimer();
-      renderAll();
-    }
+/* ── STORIES ── */
+async function loadStories(){
+  if(_stories.length)return;
+  const r=await fetch('stories/stories.json');_stories=await r.json();
+}
 
-    function renderReader() {
-      const item = stories.find(storyItem => storyItem.id === state.readerStoryId);
-      if (!item) return;
-      const chapter = item.chapters[state.readerChapterIndex];
-      els.readerStoryTitle.textContent = item.title;
-      els.readerChapterTitle.textContent = `${state.readerChapterIndex + 1}. ${chapter.title}`;
-      els.readerSearchInput.value = '';
-      renderReaderChapterContent(chapter);
-      els.chapterIndicator.textContent = `${state.readerChapterIndex + 1} / ${item.chapters.length}`;
-      els.prevChapterBtn.disabled = state.readerChapterIndex === 0;
-      els.nextChapterBtn.disabled = state.readerChapterIndex === item.chapters.length - 1;
-      els.readerBookmarkBtn.textContent = state.bookmarks.includes(item.id) ? '♥ Đã lưu' : '♡ Lưu';
-      els.readerMain.scrollTop = 0;
-      updateReaderProgress();
-    }
+/* ══ HOME ══ */
+async function renderHome(){
+  document.getElementById('hdrIn').innerHTML=`<button class="ham" onclick="openSB()">☰</button><div class="logo" onclick="nav('home')">NoveLite <em>đọc truyện</em></div><div class="srch"><input type="search" id="srchInput" placeholder="Tìm truyện..."><span class="srch-i">🔍</span></div><div class="hdr-r"><button class="ibtn" id="themeBtn" onclick="toggleTheme()">🌙</button></div>`;
+  applyS();
+  document.getElementById('genreTabs').addEventListener('click',e=>{const b=e.target.closest('.gtag');if(!b)return;document.querySelectorAll('.gtag').forEach(x=>x.classList.remove('on'));b.classList.add('on');const g=b.dataset.g;renderGrid(g?_stories.filter(s=>(s.genres||[]).includes(g)):_stories);});
+  document.getElementById('srchInput').addEventListener('input',e=>{const q=e.target.value.toLowerCase();renderGrid(q?_stories.filter(s=>s.title.toLowerCase().includes(q)||s.author.toLowerCase().includes(q)):_stories);});
+  try{const p=JSON.parse(localStorage.getItem('nv_progress')||'null');if(p?.hash){document.getElementById('contT').textContent=p.storyTitle||'';document.getElementById('contS').textContent=p.chapterTitle||'';document.getElementById('contBar').classList.add('show');window._rH=p.hash;}}catch(e){}
+  await loadStories();
+  renderFeatured();renderGrid(_stories);renderRecent();
+}
+window.goResume=()=>{if(window._rH)nav(window._rH);};
+window.filterGenre=g=>{nav('home');setTimeout(()=>{const b=document.querySelector(`[data-g="${g}"]`);if(b){document.querySelectorAll('.gtag').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderGrid(_stories.filter(s=>(s.genres||[]).includes(g)));}},200);closeSB();};
+function cH(s){return s.cover?`<img src="${s.cover}" onerror="this.style.display='none'">`:''}
+function renderFeatured(){const f=_stories.find(s=>s.featured);if(!f)return;document.getElementById('featWrap').innerHTML=`<div class="feat" onclick="nav('story?id=${f.id}')"><div class="feat-glow"></div><div class="feat-b"><div class="feat-badge">🔥 Nổi bật</div><div class="feat-t">${f.title}</div><div class="feat-m">${f.author} · ${f.chapters?.length||0} ch.</div><div class="feat-btn">Đọc ngay ›</div></div><div class="feat-cov">${cH(f)}<span>${f.emoji||'📚'}</span></div></div>`;}
+function renderGrid(list){const el=document.getElementById('gridWrap');el.className='bgrid';if(!list.length){el.innerHTML='<p style="color:var(--tx2);font-size:.85rem;padding:10px 0">Không có truyện nào.</p>';return;}el.innerHTML=list.map(s=>{const n=s.chapters?.length||0,on=s.status==='ongoing';return `<div class="bc" onclick="nav('story?id=${s.id}')"><div class="bcov">${cH(s)}<span class="bcov-ico">${s.emoji||'📚'}</span><div class="bstat ${on?'':'full'}">${on?'Đang ra':'Hoàn thành'}</div><div class="bcnt">${n} ch.</div></div><div class="bt">${s.title}</div><div class="bauth">${s.author}</div></div>`;}).join('');}
+function renderRecent(){document.getElementById('recentWrap').innerHTML=[..._stories].reverse().map((s,i)=>{const lc=s.chapters?.at(-1);return `<div class="ri" onclick="nav('story?id=${s.id}')"><span class="rnum">${i+1}</span><div class="rcov">${cH(s)}<span>${s.emoji||'📚'}</span></div><div class="rbody"><div class="rt">${s.title}</div><div class="rs">${lc?'Ch.'+lc.num+': '+lc.title:''}</div></div><span class="rtime">${s.updatedAt||''}</span></div>`;}).join('');}
 
-    function renderReaderChapterContent(chapter) {
-      els.readerArticle.innerHTML = `<h2>${escapeHTML(chapter.title)}</h2>${chapter.content.map(paragraph => `<p>${escapeHTML(paragraph)}</p>`).join('')}`;
-    }
+/* ══ STORY ══ */
+async function renderStory(sid){
+  if(!sid){nav('home');return;}
+  document.getElementById('hdrIn').innerHTML=`<button class="ham" onclick="openSB()">☰</button><button class="hdr-back" onclick="nav('home')">←</button><div class="hdr-t" id="stHdrT">Đang tải...</div><div class="hdr-r"><button class="ibtn" id="themeBtn" onclick="toggleTheme()">🌙</button></div>`;applyS();
+  await loadStories();_curStory=_stories.find(s=>s.id===sid);if(!_curStory){nav('home');return;}
+  document.title=_curStory.title+' – NoveLite';document.getElementById('stHdrT').textContent=_curStory.title;
+  const s=_curStory,isBm=(_ud?.bookmarks||[]).includes(sid);
+  const prog=getResume(sid);
+  document.getElementById('stHeroWrap').innerHTML=`<div class="hero-block"><div class="hero-in"><div class="h-cov">${cH(s)}<span>${s.emoji||'📚'}</span></div><div class="h-b"><div class="h-t">${s.title}</div><div class="h-auth">✍️ ${s.author}</div><div class="tags">${(s.genres||[]).map(g=>`<span class="tag">${g}</span>`).join('')}<span class="tag ${s.status==='ongoing'?'tag-g':'tag-p'}">${s.status==='ongoing'?'Đang ra':'Hoàn thành'}</span></div><div class="h-btns"><button class="btn-p" onclick="nav('reader?id=${sid}&ch=1')">📖 Đọc từ đầu</button>${prog?`<button class="btn-p" style="background:var(--sf2);color:var(--tx);border:1px solid var(--bd)" onclick="nav('${prog.hash}')">▶ Tiếp tục</button>`:''}<button class="btn-sec ${isBm?'bm-on':''}" id="bmBtn" onclick="doBm('${sid}')">${isBm?'🔖 Đã lưu':'🔖 Lưu truyện'}</button></div></div></div></div>`;
+  const rc=(_ud?.readChapters||{})[sid]||[];const tot=s.chapters?.length||0;
+  document.getElementById('stSbarWrap').innerHTML=`<div class="sbar-block"><div class="sbar-in"><div class="si"><div class="sn">${tot}</div><div class="sl">Chương</div></div><div class="si"><div class="sn">${rc.length}</div><div class="sl">Đã đọc</div></div><div class="si"><div class="sn">~${Math.max(1,tot*5)}'</div><div class="sl">Tổng thời gian</div></div></div></div>`;
+  document.getElementById('stDescWrap').innerHTML=`<div class="sec-hd" style="margin-bottom:10px"><div class="sec-t">Giới thiệu</div></div><p class="desc">${s.description||''}</p>`;
+  const curCh=prog?.chNum||null;
+  document.getElementById('stChWrap').innerHTML=(s.chapters||[]).map(ch=>{const isR=rc.includes(ch.num),isC=curCh===ch.num;return `<div class="chi ${isC?'reading':isR?'read':''}" onclick="nav('reader?id=${sid}&ch=${ch.num}')"><div class="chi-n">${ch.num}</div><div class="chi-b"><div class="chi-lbl">Chương ${ch.num}</div><div class="chi-t">${ch.title}</div><div class="chi-m">~5 phút đọc</div></div>${isC?'<span class="rbadge">Đang đọc</span>':'<div class="chi-dot"></div>'}</div>`;}).join('');
+}
+window.doBm=async sid=>{
+  const btn=document.getElementById('bmBtn');if(!btn||!_user)return;btn.disabled=true;
+  const snap=await getDoc(doc(db,'users',_user.uid));const has=(snap.data()?.bookmarks||[]).includes(sid);
+  if(has)await updateDoc(doc(db,'users',_user.uid),{bookmarks:arrayRemove(sid)});
+  else{await updateDoc(doc(db,'users',_user.uid),{bookmarks:arrayUnion(sid),xp:(snap.data()?.xp||0)+5});}
+  const now=!has;btn.className='btn-sec'+(now?' bm-on':'');btn.textContent=now?'🔖 Đã lưu':'🔖 Lưu truyện';btn.disabled=false;
+  if(_ud)_ud.bookmarks=now?[...(_ud.bookmarks||[]),sid]:(_ud.bookmarks||[]).filter(x=>x!==sid);
+};
+function getResume(sid){try{const p=JSON.parse(localStorage.getItem('nv_progress')||'null');if(p?.storyId===sid)return p;}catch(e){}return null;}
 
-    function closeReader() {
-      stopActiveReadingTimer();
-      els.reader.classList.remove('open');
-      els.settingsDrawer.classList.remove('open');
-      document.body.style.overflow = '';
-      renderAll();
-    }
+/* ══ READER ══ */
+async function renderReader(sid,chNum){
+  if(!sid){nav('home');return;}
+  await loadStories();_curStory=_stories.find(s=>s.id===sid);if(!_curStory){nav('home');return;}
+  const r2=await fetch(`stories/${sid}/ch${chNum}.json`);
+  if(!r2.ok){nav(`story?id=${sid}`);return;}
+  _curCh=await r2.json();
+  const s=_curStory,c=_curCh,total=s.chapters?.length||1;
+  const idx=(s.chapters||[]).findIndex(x=>x.num===chNum);
+  const prev=s.chapters?.[idx-1]||null,next=s.chapters?.[idx+1]||null;
+  document.title=`${c.title} – ${s.title}`;
+  document.getElementById('rdNavTitle').textContent=`Ch.${chNum}: ${c.title}`;
+  document.getElementById('rdCrumb').textContent=`← ${s.title}`;
+  document.getElementById('rdTitle').textContent=`Chương ${chNum}: ${c.title}`;
+  document.getElementById('rdPos').textContent=`Ch.${chNum}/${total}`;
+  const cont=document.getElementById('rdContent');cont.innerHTML=c.content||'<p>Nội dung đang cập nhật.</p>';
+  const words=cont.innerText.trim().split(/\s+/).length;document.getElementById('rdTime').textContent=Math.max(1,Math.round(words/200))+' phút';
+  applyS();
+  const pb=document.getElementById('rdPrevBtn'),nb=document.getElementById('rdNextBtn');
+  if(prev){pb.classList.remove('off');pb.onclick=()=>nav(`reader?id=${sid}&ch=${prev.num}`);}else pb.classList.add('off');
+  if(next){nb.classList.remove('off');nb.onclick=()=>nav(`reader?id=${sid}&ch=${next.num}`);}else nb.classList.add('off');
+  const rc=(_ud?.readChapters||{})[sid]||[];
+  document.getElementById('tocList').innerHTML=(s.chapters||[]).map(ch=>{const isA=ch.num===chNum,isR=rc.includes(ch.num);return `<div class="ti ${isA?'active':isR?'read':''}" onclick="nav('reader?id=${sid}&ch=${ch.num}');closeTOC()"><div class="ti-n">${ch.num}</div><div class="ti-b"><div class="ti-sub">Chương ${ch.num}</div><div class="ti-t">${ch.title}</div></div><div class="ti-dot"></div></div>`;}).join('');
+  const hash=`reader?id=${sid}&ch=${chNum}`;
+  localStorage.setItem('nv_progress',JSON.stringify({hash,storyId:sid,chNum,storyTitle:s.title,chapterTitle:`Chương ${chNum}: ${c.title}`}));
+  restoreScroll(sid,chNum);setupRdScroll(sid,chNum,total);
+}
+window.rdBack=()=>{if(_curStory)nav(`story?id=${_curStory.id}`);else nav('home');};
+window.rdNav=dir=>{const b=document.getElementById(dir==='prev'?'rdPrevBtn':'rdNextBtn');if(b&&!b.classList.contains('off'))b.click();};
+function restoreScroll(sid,ch){try{const y=parseInt(localStorage.getItem(`nv_sc_${sid}_${ch}`)||'0');if(y>100)setTimeout(()=>window.scrollTo(0,y),100);}catch(e){}}
+function setupRdScroll(sid,ch,total){
+  let lY=0,tk=false,marked=false;
+  const handler=()=>{if(!tk){requestAnimationFrame(()=>{tk=false;const y=window.scrollY,t2=document.body.scrollHeight-window.innerHeight;const pct=t2>0?y/t2*100:0;document.getElementById('rdPbar').style.width=pct.toFixed(2)+'%';document.getElementById('rdProg').textContent=Math.round(pct)+'% đã đọc';document.getElementById('btt').classList.toggle('show',y>400);const rn=document.getElementById('rdNav');if(y>lY+15&&y>70)rn.classList.add('hide');else if(y<lY-8||y<60)rn.classList.remove('hide');lY=y;if(pct>=70&&!marked){marked=true;doMarkRead(sid,ch,total);}try{localStorage.setItem(`nv_sc_${sid}_${ch}`,y);}catch(e){}});tk=true;}};
+  window.addEventListener('scroll',handler,{passive:true});
+  window._rdClean=()=>window.removeEventListener('scroll',handler);
+}
+async function doMarkRead(sid,ch,total){
+  if(!_user)return;
+  try{const ref=doc(db,'users',_user.uid);const snap=await getDoc(ref);const d=snap.data()||{};const rc={...(d.readChapters||{})};const arr=[...(rc[sid]||[])];if(arr.includes(ch))return;arr.push(ch);rc[sid]=arr;const isComplete=arr.length>=total;let xpG=15;const h=[{storyId:sid,chNum:ch,ts:Date.now()},...(d.history||[]).filter(x=>!(x.storyId===sid&&x.chNum===ch))].slice(0,50);const upd={readChapters:rc,history:h,xp:(d.xp||0)+xpG};if(isComplete&&!(d.completedStories||[]).includes(sid)){xpG+=100;upd.xp+=100;upd.completedStories=arrayUnion(sid);}await updateDoc(ref,upd);if(_ud){_ud.xp=upd.xp;_ud.readChapters=rc;_ud.history=h;}fillSB();showXpToast(xpG,isComplete);}catch(e){}
+}
+function showXpToast(xp,isComplete){const t=document.getElementById('xpToast');t.innerHTML=`⚡ <span class="xp-n">+${xp} XP</span> · ${isComplete?'🎉 Hoàn thành!':'Đã đọc chương mới!'}`;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 
-    function previousChapter() {
-      if (!state.readerStoryId || state.readerChapterIndex <= 0) return;
-      state.readerChapterIndex -= 1;
-      renderReader();
-      saveHistory();
-      showToast('Đã chuyển về chương trước');
-    }
+/* ══ PROFILE ══ */
+async function renderProfile(){
+  document.getElementById('hdrIn').innerHTML=`<button class="ham" onclick="openSB()">☰</button><button class="hdr-back" onclick="nav('home')">←</button><div class="hdr-t">Hồ sơ cá nhân</div><div class="hdr-r"><button class="ibtn" id="themeBtn" onclick="toggleTheme()">🌙</button></div>`;applyS();
+  if(_ud)document.getElementById('pNameInput').value=_ud.displayName||'';
+  await loadStories();
+  renderPHero();renderRankRoad();renderPStats();renderPBm();renderPHist();renderPDone();
+}
+function renderPHero(){
+  if(!_ud||!_user)return;const xp=_ud.xp||0,rk=getRank(xp),nxt=RANKS[RANKS.findLastIndex(r=>xp>=r.x)+1]||null,prog=getXpProg(xp);
+  const name=_ud.displayName||_user.email?.split('@')[0]||'?';const ini=name[0].toUpperCase();
+  const avH=_ud.avatarUrl?`<img src="${_ud.avatarUrl}" onerror="this.style.display='none'"><span style="position:absolute">${ini}</span>`:ini;
+  document.getElementById('pHeroArea').innerHTML=`<div class="av-wrap" onclick="document.getElementById('avInput').click()"><div class="av-ring" style="--p:${prog*3.6}deg"><div class="av-inner" style="background:${rk.c}">${avH}</div></div><div class="av-edit-ico">✏️</div></div><div class="av-hint">Nhấn để đổi ảnh (png/jpg/gif/webp)</div><div class="p-name">${name}</div><div class="p-rnk" style="color:${rk.c}">${rk.i} ${rk.n}</div><div class="p-xpt">${xp.toLocaleString()} XP</div><div class="xp-bw"><div class="xp-labels"><span>${rk.n}</span>${nxt?`<span>${nxt.n}</span>`:'<span>🏆 Tối thượng</span>'}</div><div class="xp-bar"><div class="xp-fill" style="width:${prog}%;background:${rk.c}"></div></div>${nxt?`<div class="xp-next">${xp.toLocaleString()} / ${nxt.x.toLocaleString()} XP</div>`:''}</div>`;
+}
+function renderRankRoad(){if(!_ud)return;const xp=_ud.xp||0;const ci=RANKS.findLastIndex(r=>xp>=r.x);let h='';RANKS.forEach((r,i)=>{const done=i<ci,cur=i===ci;if(i>0)h+=`<div class="rk-line ${done?'done':''}"></div>`;h+=`<div class="rk-node"><div class="rk-circle ${done?'done':''} ${cur?'cur':''}" style="${done||cur?`background:${r.c};color:#fff;border-color:${r.c}`:''}">${r.i}</div><div class="rk-lbl ${done?'done':''} ${cur?'cur':''}">${r.n}</div></div>`;});document.getElementById('rankRoad').innerHTML=h;setTimeout(()=>{const ns=document.querySelectorAll('.rk-node');if(ns[ci])ns[ci].scrollIntoView({inline:'center',behavior:'smooth'});},300);}
+function renderPStats(){if(!_ud)return;const rc=_ud.readChapters||{};const tot=Object.values(rc).reduce((a,v)=>a+v.length,0);const bm=(_ud.bookmarks||[]).length;const streak=_ud.loginStreak||1;document.getElementById('statsGrid').outerHTML=`<div class="sg" id="statsGrid"><div class="sc"><div class="sc-n">${tot}</div><div class="sc-l">Chương đọc</div></div><div class="sc"><div class="sc-n">${bm}</div><div class="sc-l">Đã lưu</div></div><div class="sc"><div class="sc-n">${streak}🔥</div><div class="sc-l">Ngày liên tiếp</div></div></div>`;}
+function sCard(s,sub,time){return `<div class="sli" onclick="nav('story?id=${s.id}')"><div class="sli-cov">${cH(s)}<span>${s.emoji||'📚'}</span></div><div class="sli-b"><div class="sli-t">${s.title}</div><div class="sli-s">${sub}</div></div>${time?`<div class="sli-tm">${time}</div>`:''}</div>`;}
+function emptyEl(ico,txt){return`<div class="empty"><span>${ico}</span>${txt}</div>`;}
+function renderPBm(){const bms=_ud?.bookmarks||[];const el=document.getElementById('pTabBm');el.innerHTML=bms.length?bms.map(id=>{const s=_stories.find(x=>x.id===id);return s?sCard(s,s.author+' · '+(s.chapters?.length||0)+' chương',''):''}).filter(Boolean).join(''):emptyEl('📚','Chưa lưu truyện nào');}
+function renderPHist(){const h=(_ud?.history||[]).slice(0,30);const el=document.getElementById('pTabHist');if(!h.length){el.innerHTML=emptyEl('🕑','Chưa có lịch sử đọc');return;}const seen=new Set();el.innerHTML=h.filter(x=>{if(seen.has(x.storyId))return false;seen.add(x.storyId);return true;}).map(x=>{const s=_stories.find(y=>y.id===x.storyId);if(!s)return '';const d=new Date(x.ts).toLocaleDateString('vi-VN',{day:'numeric',month:'numeric'});return sCard(s,'Ch.'+x.chNum,d);}).filter(Boolean).join('');}
+function renderPDone(){const cp=_ud?.completedStories||[];const el=document.getElementById('pTabDone');el.innerHTML=cp.length?cp.map(id=>{const s=_stories.find(x=>x.id===id);return s?sCard(s,'🎉 Đã đọc hết',''):''}).filter(Boolean).join(''):emptyEl('✅','Chưa hoàn thành truyện nào');}
 
-    function nextChapter() {
-      const item = stories.find(storyItem => storyItem.id === state.readerStoryId);
-      if (!item || state.readerChapterIndex >= item.chapters.length - 1) return;
-      state.readerChapterIndex += 1;
-      renderReader();
-      saveHistory();
-      showToast('Đã chuyển sang chương sau');
-    }
+window.pTab=key=>{document.querySelectorAll('.p-tab').forEach((t,i)=>{t.classList.toggle('on',['Bm','Hist','Done'][i]===key);});['pTabBm','pTabHist','pTabDone'].forEach(id=>{document.getElementById(id).style.display=id===`pTab${key}`?'':'none';});};
 
-    function saveHistory() {
-      if (!state.readerStoryId) return;
-      state.history[state.readerStoryId] = { storyId: state.readerStoryId, chapterIndex: state.readerChapterIndex, readAt: Date.now() };
-      writeJSON(STORAGE_KEYS.history, state.history);
-    }
+window.pSaveName=async()=>{
+  const n=document.getElementById('pNameInput').value.trim();if(!n)return;
+  const btn=document.getElementById('pSaveBtn');btn.disabled=true;btn.textContent='...';
+  try{await updateDoc(doc(db,'users',_user.uid),{displayName:n});await updateProfile(_user,{displayName:n});if(_ud)_ud.displayName=n;fillSB();renderPHero();showToast('✓ Đã lưu');}
+  catch(e){showToast('❌ Lỗi khi lưu');}btn.disabled=false;btn.textContent='Lưu';
+};
 
-    function updateReaderProgress() {
-      const total = els.readerMain.scrollHeight - els.readerMain.clientHeight;
-      const value = total <= 0 ? 0 : Math.round((els.readerMain.scrollTop / total) * 100);
-      els.readerProgress.style.width = `${value}%`;
-    }
-
-    function toggleBookmark(storyId) {
-      if (!storyId) return;
-      const index = state.bookmarks.indexOf(storyId);
-      if (index >= 0) { state.bookmarks.splice(index, 1); showToast('Đã bỏ lưu truyện'); }
-      else { state.bookmarks.push(storyId); showToast('Đã lưu truyện vào bookmark'); }
-      writeJSON(STORAGE_KEYS.bookmarks, state.bookmarks);
-      renderAll();
-      if (state.selectedStoryId === storyId && els.detailModal.classList.contains('open')) openStoryModal(storyId);
-      if (state.readerStoryId === storyId && els.reader.classList.contains('open')) renderReader();
-    }
-
-    function toggleTheme() {
-      const next = els.html.dataset.theme === 'dark' ? 'light' : 'dark';
-      els.html.dataset.theme = next;
-      localStorage.setItem(STORAGE_KEYS.theme, next);
-      els.themeToggle.textContent = next === 'dark' ? '🌙' : '☀️';
-      showToast(next === 'dark' ? 'Đã bật giao diện tối' : 'Đã bật giao diện sáng');
-    }
-
-    function applyReaderSettings() {
-      document.documentElement.style.setProperty('--reader-font-size', `${state.readerSettings.fontSize}px`);
-      document.documentElement.style.setProperty('--reader-line-height', state.readerSettings.lineHeight);
-      document.documentElement.style.setProperty('--reader-font', state.readerSettings.font);
-      setReaderTheme(state.readerSettings.theme);
-      els.fontSizeRange.value = state.readerSettings.fontSize;
-      els.fontSizeValue.textContent = state.readerSettings.fontSize;
-      els.lineHeightRange.value = state.readerSettings.lineHeight;
-      els.lineHeightValue.textContent = state.readerSettings.lineHeight;
-      els.fontSelect.value = state.readerSettings.font;
-      els.readerThemeSelect.value = state.readerSettings.theme;
-    }
-
-    function updateReaderSetting(key, value) { state.readerSettings[key] = value; writeJSON(STORAGE_KEYS.reader, state.readerSettings); applyReaderSettings(); }
-
-    function resetReaderSettings() {
-      state.readerSettings = { fontSize: 19, lineHeight: 1.9, font: "Georgia, 'Times New Roman', serif", theme: 'dark' };
-      writeJSON(STORAGE_KEYS.reader, state.readerSettings);
-      applyReaderSettings();
-      showToast('Đã đặt lại tuỳ chỉnh đọc');
-    }
-
-    function setReaderTheme(theme) {
-      const themes = { dark: ['#101827', '#ecf3ff', 'rgba(236,243,255,0.68)', 'rgba(16,24,39,0.94)', 'rgba(236,243,255,0.14)'], sepia: ['#fff3d6', '#2f2417', 'rgba(47,36,23,0.68)', 'rgba(255,243,214,0.96)', 'rgba(47,36,23,0.16)'], light: ['#ffffff', '#172033', 'rgba(23,32,51,0.68)', 'rgba(255,255,255,0.96)', 'rgba(23,32,51,0.14)'], black: ['#020617', '#f8fafc', 'rgba(248,250,252,0.7)', 'rgba(2,6,23,0.96)', 'rgba(248,250,252,0.14)'] };
-      const [bg, text, muted, panel, border] = themes[theme] || themes.dark;
-      document.documentElement.style.setProperty('--reader-bg', bg);
-      document.documentElement.style.setProperty('--reader-text', text);
-      document.documentElement.style.setProperty('--reader-muted', muted);
-      document.documentElement.style.setProperty('--reader-panel', panel);
-      document.documentElement.style.setProperty('--reader-border', border);
-    }
-
-    function highlightReaderText(term) {
-      const item = stories.find(storyItem => storyItem.id === state.readerStoryId);
-      if (!item) return;
-      const chapter = item.chapters[state.readerChapterIndex];
-      if (!term) { renderReaderChapterContent(chapter); return; }
-      const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
-      els.readerArticle.innerHTML = `<h2>${escapeHTML(chapter.title)}</h2>` + chapter.content.map(paragraph => `<p>${escapeHTML(paragraph).replace(regex, '<mark class="reader-mark">$1</mark>')}</p>`).join('');
-      const firstMark = els.readerArticle.querySelector('.reader-mark');
-      if (firstMark) firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function openNotesModal(fromReader = false) {
-      if (fromReader) useCurrentSelectionAsQuote(false);
-      els.notesModal.classList.add('open');
-      renderNotesList();
-      setTimeout(() => els.noteText.focus(), 30);
-    }
-
-    function closeNotesModal() { els.notesModal.classList.remove('open'); }
-
-    function saveCurrentNote() {
-      const text = els.noteText.value.trim();
-      const quote = els.quoteText.value.trim();
-      if (!text && !quote) { showToast('Bạn chưa nhập nội dung ghi chú'); return; }
-      const item = state.readerStoryId ? stories.find(storyItem => storyItem.id === state.readerStoryId) : getSelectedStory();
-      const chapter = item && state.readerStoryId ? item.chapters[state.readerChapterIndex] : null;
-      state.notes.unshift({ id: `note-${Date.now()}`, text, quote, storyId: item?.id || null, storyTitle: item?.title || 'Ghi chú chung', chapterIndex: chapter ? state.readerChapterIndex : null, chapterTitle: chapter?.title || '', createdAt: Date.now() });
-      writeJSON(STORAGE_KEYS.notes, state.notes);
-      els.noteText.value = '';
-      els.quoteText.value = '';
-      renderAll();
-      showToast('Đã lưu ghi chú');
-    }
-
-    function useCurrentSelectionAsQuote(notify = true) {
-      const selection = String(window.getSelection ? window.getSelection() : '').trim();
-      if (selection) els.quoteText.value = selection;
-      if (notify) showToast(selection ? 'Đã lấy đoạn đang bôi đen' : 'Bạn chưa bôi đen đoạn nào');
-    }
-
-    function renderNotesList() {
-      const keyword = normalize(els.noteSearchInput.value || '');
-      const filtered = state.notes.filter(note => normalize(`${note.text} ${note.quote} ${note.storyTitle} ${note.chapterTitle}`).includes(keyword));
-      if (!filtered.length) { els.notesList.innerHTML = '<p style="color:var(--muted);line-height:1.6;margin:0">Chưa có ghi chú phù hợp. Khi đọc truyện, nhấn phím N để ghi chú nhanh.</p>'; return; }
-      els.notesList.innerHTML = filtered.map(note => `<article class="note-card"><div class="note-meta">${escapeHTML(note.storyTitle)}${note.chapterTitle ? ` · ${escapeHTML(note.chapterTitle)}` : ''} · ${formatDateTime(note.createdAt)}</div>${note.quote ? `<blockquote>${escapeHTML(note.quote)}</blockquote>` : ''}${note.text ? `<p>${escapeHTML(note.text)}</p>` : ''}<div style="display:flex; gap:8px; flex-wrap:wrap">${note.storyId ? `<button class="btn small" data-note-open="${note.storyId}" data-note-chapter="${note.chapterIndex ?? 0}">Mở lại</button>` : ''}<button class="btn small danger" data-note-delete="${note.id}">Xoá</button></div></article>`).join('');
-      els.notesList.querySelectorAll('[data-note-open]').forEach(button => button.addEventListener('click', () => { closeNotesModal(); openReader(button.dataset.noteOpen, Number(button.dataset.noteChapter || 0)); }));
-      els.notesList.querySelectorAll('[data-note-delete]').forEach(button => button.addEventListener('click', () => deleteNote(button.dataset.noteDelete)));
-    }
-
-    function deleteNote(noteId) { state.notes = state.notes.filter(note => note.id !== noteId); writeJSON(STORAGE_KEYS.notes, state.notes); renderAll(); showToast('Đã xoá ghi chú'); }
-    function deleteAllNotes() { if (!confirm('Xoá toàn bộ ghi chú?')) return; state.notes = []; writeJSON(STORAGE_KEYS.notes, state.notes); renderAll(); showToast('Đã xoá toàn bộ ghi chú'); }
-
-    function renderShelfStats() {
-      els.advNoteCount.textContent = state.notes.length;
-      const latest = Object.values(state.history).sort((a, b) => b.readAt - a.readAt)[0];
-      const item = latest ? stories.find(storyItem => storyItem.id === latest.storyId) : null;
-      els.advLastStory.textContent = item ? item.title : 'Chưa có';
-    }
-
-    function renderGoalStats() {
-      const today = getTodayKey();
-      const minutes = state.sessions[today] || 0;
-      const goal = Math.max(1, Number(state.goal.minutes) || 20);
-      const percent = Math.min(100, Math.round((minutes / goal) * 100));
-      const degrees = Math.min(360, Math.round((minutes / goal) * 360));
-      els.advGoalRing.style.setProperty('--goal-progress', `${degrees}deg`);
-      els.advGoalPercent.textContent = `${percent}%`;
-      els.advTodayMinutes.textContent = `${minutes} phút`;
-      els.advGoalText.textContent = goal;
-      if (document.activeElement !== els.advGoalInput) els.advGoalInput.value = goal;
-    }
-
-    function saveGoal() {
-      state.goal.minutes = Math.max(1, Math.min(600, Number(els.advGoalInput.value || 20)));
-      writeJSON(STORAGE_KEYS.goal, state.goal);
-      renderGoalStats();
-      showToast('Đã lưu mục tiêu đọc');
-    }
-
-    function startActiveReadingTimer() {
-      stopActiveReadingTimer();
-      state.timer = setInterval(() => {
-        if (!els.reader.classList.contains('open')) return;
-        const key = getTodayKey();
-        state.sessions[key] = (state.sessions[key] || 0) + 1;
-        writeJSON(STORAGE_KEYS.sessions, state.sessions);
-        renderGoalStats();
-      }, 60000);
-    }
-
-    function stopActiveReadingTimer() { clearInterval(state.timer); state.timer = null; }
-
-    function openExportModal() { els.exportText.value = JSON.stringify(buildExportPayload(), null, 2); els.exportModal.classList.add('open'); }
-    function closeExportModal() { els.exportModal.classList.remove('open'); }
-    function buildExportPayload() { return { app: 'MoonNovel', version: 3, exportedAt: new Date().toISOString(), bookmarks: state.bookmarks, history: state.history, readerSettings: state.readerSettings, notes: state.notes, goal: state.goal, sessions: state.sessions }; }
-
-    async function copyExportJSON() {
-      try { await navigator.clipboard.writeText(els.exportText.value || JSON.stringify(buildExportPayload(), null, 2)); showToast('Đã copy JSON'); }
-      catch { showToast('Trình duyệt chưa cho phép copy tự động'); }
-    }
-
-    function downloadExportJSON() {
-      const blob = new Blob([JSON.stringify(buildExportPayload(), null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `moonnovel-backup-${getTodayKey()}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function importJSONFile(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const data = JSON.parse(reader.result);
-          if (!data || data.app !== 'MoonNovel') throw new Error('Sai định dạng');
-          state.bookmarks = Array.isArray(data.bookmarks) ? data.bookmarks : state.bookmarks;
-          state.history = isObject(data.history) ? data.history : state.history;
-          state.readerSettings = isObject(data.readerSettings) ? data.readerSettings : state.readerSettings;
-          state.notes = Array.isArray(data.notes) ? data.notes : state.notes;
-          state.goal = isObject(data.goal) ? data.goal : state.goal;
-          state.sessions = isObject(data.sessions) ? data.sessions : state.sessions;
-          writeJSON(STORAGE_KEYS.bookmarks, state.bookmarks);
-          writeJSON(STORAGE_KEYS.history, state.history);
-          writeJSON(STORAGE_KEYS.reader, state.readerSettings);
-          writeJSON(STORAGE_KEYS.notes, state.notes);
-          writeJSON(STORAGE_KEYS.goal, state.goal);
-          writeJSON(STORAGE_KEYS.sessions, state.sessions);
-          applyReaderSettings();
-          renderAll();
-          showToast('Đã nhập dữ liệu thành công');
-        } catch (error) { showToast('File JSON không hợp lệ'); }
-        finally { event.target.value = ''; }
-      };
-      reader.readAsText(file);
-    }
-
-    function clearReadingHistory() {
-      if (!confirm('Xoá toàn bộ lịch sử đọc? Bookmark và ghi chú vẫn được giữ.')) return;
-      state.history = {};
-      writeJSON(STORAGE_KEYS.history, state.history);
-      renderAll();
-      showToast('Đã xoá lịch sử đọc');
-    }
-
-    function handleShortcuts(event) {
-      const target = event.target;
-      const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName);
-      if (event.key === '/' && !els.reader.classList.contains('open') && !isTyping) { event.preventDefault(); els.searchInput.focus(); return; }
-      if (event.key === 'Escape') { closeModal(); closeNotesModal(); closeExportModal(); els.settingsDrawer.classList.remove('open'); if (els.reader.classList.contains('open')) closeReader(); return; }
-      if (!els.reader.classList.contains('open') || isTyping) return;
-      if (event.key === 'ArrowRight') nextChapter();
-      if (event.key === 'ArrowLeft') previousChapter();
-      if (event.key.toLowerCase() === 'n') { event.preventDefault(); openNotesModal(true); }
-      if (event.key.toLowerCase() === 'f') { event.preventDefault(); els.readerSearchInput.focus(); els.readerSearchInput.select(); }
-      if (event.key.toLowerCase() === 'b') { event.preventDefault(); toggleBookmark(state.readerStoryId); }
-    }
-
-    function getSelectedStory() { return stories.find(item => item.id === state.selectedStoryId); }
-    function sortStories(items, sort) { const sorters = { updated: (a, b) => new Date(b.updated) - new Date(a.updated), rating: (a, b) => b.rating - a.rating, views: (a, b) => b.views - a.views, chapters: (a, b) => b.chapters.length - a.chapters.length, az: (a, b) => a.title.localeCompare(b.title, 'vi') }; return [...items].sort(sorters[sort] || sorters.updated); }
-    function story(id, title, author, status, genres, rating, views, updated, hot, colors, description, chapterTitles) { return { id, title, author, status, genres, rating, views, updated, hot, colors, description, chapters: makeChapters(title, chapterTitles) }; }
-    function makeChapters(storyTitle, titles) { return titles.map((title, index) => ({ title, content: generateChapterContent(storyTitle, title, index + 1) })); }
-    function generateChapterContent(storyTitle, chapterTitle, chapterNumber) { return [`Chương ${chapterNumber} của ${storyTitle} mở ra bằng một buổi chiều nhiều gió. ${chapterTitle} không chỉ là một cái tên, mà còn là dấu hiệu đầu tiên cho những biến động sắp xảy ra.`, 'Con đường phía trước phủ đầy ánh sáng nhạt. Nhân vật chính bước đi chậm rãi, trong lòng mang theo những câu hỏi chưa có lời giải và một niềm tin nhỏ bé nhưng bền bỉ.', 'Ở một góc phố, tiếng chuông vang lên như nhắc rằng mọi lựa chọn đều có giá của nó. Có người chọn im lặng, có người chọn đối mặt, còn có người chọn viết lại số phận của mình.', 'Những lời đối thoại tưởng chừng bình thường lại ẩn giấu manh mối quan trọng. Một ánh mắt né tránh, một câu nói bỏ lửng, một cánh cửa khép hờ — tất cả dần ghép thành bức tranh lớn hơn.', 'Đêm xuống. Bầu trời như được rửa sạch bởi cơn mưa muộn. Nhân vật chính nhận ra rằng điều đáng sợ nhất không phải bóng tối, mà là sự thật đang chờ được gọi tên.', 'Khi chương truyện khép lại, một quyết định được đưa ra. Nó nhỏ như tiếng thở dài, nhưng đủ để đẩy mọi thứ sang một hướng hoàn toàn khác.']; }
-    function normalize(value) { return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); }
-    function formatNumber(value) { return new Intl.NumberFormat('vi-VN', { notation: 'compact', maximumFractionDigits: 1 }).format(value); }
-    function formatDate(date) { return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(date)); }
-    function formatDateTime(timestamp) { return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(timestamp)); }
-    function getTodayKey() { return new Date().toISOString().slice(0, 10); }
-    function isObject(value) { return value !== null && typeof value === 'object' && !Array.isArray(value); }
-    function readJSON(key, fallback) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
-    function writeJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
-    function escapeHTML(value) { return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;'); }
-
-    function escapeRegExp(value) {
-      return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
-
-    let toastTimer;
-    function showToast(message) { els.toast.textContent = message; els.toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => els.toast.classList.remove('show'), 1800); }
-
-    function runSelfTests() {
-      const tests = [
-        { name: 'escapeRegExp handles brackets', run: () => new RegExp(escapeRegExp('[abc]')).test('[abc]') },
-        { name: 'escapeRegExp handles slash and star', run: () => new RegExp(escapeRegExp('a/b*c')).test('a/b*c') },
-        { name: 'normalize removes Vietnamese accents', run: () => normalize('Thần Kiếm') === 'than kiem' },
-        { name: 'story data has chapters', run: () => stories.every(item => item.chapters.length > 0) },
-        { name: 'export payload is valid JSON', run: () => JSON.parse(JSON.stringify(buildExportPayload())).app === 'MoonNovel' }
-      ];
-      const results = tests.map(test => ({ name: test.name, pass: Boolean(test.run()) }));
-      const failed = results.filter(item => !item.pass);
-      if (failed.length) console.error('MoonNovel self-tests failed:', failed);
-      else console.info('MoonNovel self-tests passed:', results);
-    }
-  </script>
+document.getElementById('avInput').addEventListener('change',async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  if(file.size>5*1024*1024){showToast('❌ Ảnh phải nhỏ hơn 5MB');return;}
+  showToast('⏳ Đang upload...');
+  try{const ext=file.name.split('.').pop()||'png';const r2=sref(storage,`avatars/${_user.uid}.${ext}`);await uploadBytes(r2,file,{contentType:file.type});const url=await getDownloadURL(r2);await updateDoc(doc(db,'users',_user.uid),{avatarUrl:url});await updateProfile(_user,{photoURL:url});if(_ud)_ud.avatarUrl=url;fillSB();renderPHero();showToast('✓ Đã cập nhật ảnh');}
+  catch(e){showToast('❌ Lỗi: '+e.message);}e.target.value='';
+});
+</script>
 </body>
 </html>
