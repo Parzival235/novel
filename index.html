@@ -273,13 +273,13 @@ body:not(.in-reader) #rdPbar,body:not(.in-reader) #rdNav{display:none!important}
 
 /* ════ PROFILE ════ */
 .phero{background:var(--sf);border-bottom:1px solid var(--bd)}
-.phero-in{max-width:720px;margin:0 auto;padding:22px 14px 16px;display:flex;flex-direction:column;align-items:center}
-.av-wrap{position:relative;cursor:pointer;margin-bottom:10px}
-.av-ring{width:90px;height:90px;border-radius:50%;padding:3px;background:conic-gradient(var(--ac) var(--p,0%), var(--bd) 0%)}
-.av-inner{width:100%;height:100%;border-radius:50%;overflow:hidden;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;position:relative}
+.phero-in{max-width:720px;margin:0 auto;padding:28px 14px 18px;display:flex;flex-direction:column;align-items:center}
+.av-wrap{position:relative;cursor:pointer;margin-bottom:12px}
+.av-ring{width:124px;height:124px;border-radius:50%;padding:4px;background:conic-gradient(var(--ac) var(--p,0%), var(--bd) 0%)}
+.av-inner{width:100%;height:100%;border-radius:50%;overflow:hidden;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:2.55rem;font-weight:800;color:#fff;position:relative}
 .av-inner img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.av-edit-ico{position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:var(--ac);color:#fff;font-size:.78rem;display:flex;align-items:center;justify-content:center;border:2px solid var(--sf)}
-.av-hint{font-size:.68rem;color:var(--tx3);margin-bottom:10px}
+.av-edit-ico{position:absolute;bottom:4px;right:4px;width:34px;height:34px;border-radius:50%;background:var(--ac);color:#fff;font-size:.95rem;display:flex;align-items:center;justify-content:center;border:3px solid var(--sf);box-shadow:var(--sh)}
+.av-hint{font-size:.72rem;color:var(--tx3);margin-bottom:10px}
 .p-name{font-family:var(--dp);font-size:1.2rem;font-weight:800;margin-bottom:3px}
 .p-rnk{font-size:.8rem;font-weight:700;margin-bottom:4px}.p-xpt{font-size:.7rem;color:var(--tx2);margin-bottom:12px}
 .xp-bw{width:100%;max-width:280px}
@@ -852,7 +852,7 @@ function renderPHero(){
   if(!_ud||!_user)return;const xp=_ud.xp||0,rk=getRank(xp),nxt=RANKS[RANKS.findLastIndex(r=>xp>=r.x)+1]||null,prog=getXpProg(xp);
   const name=_ud.displayName||_user.email?.split('@')[0]||'?';const ini=name[0].toUpperCase();
   const avH=_ud.avatarUrl?`<img src="${_ud.avatarUrl}" onerror="this.style.display='none'"><span style="position:absolute">${ini}</span>`:ini;
-  document.getElementById('pHeroArea').innerHTML=`<div class="av-wrap" onclick="document.getElementById('avInput').click()"><div class="av-ring" style="--p:${prog*3.6}deg"><div class="av-inner" style="background:${rk.c}">${avH}</div></div><div class="av-edit-ico">✏️</div></div><div class="av-hint">Nhấn để đổi ảnh (png/jpg/gif/webp)</div><div class="p-name">${name}</div><div class="p-rnk" style="color:${rk.c}">${rk.i} ${rk.n}</div><div class="p-xpt">${xp.toLocaleString()} XP</div><div class="xp-bw"><div class="xp-labels"><span>${rk.n}</span>${nxt?`<span>${nxt.n}</span>`:'<span>🏆 Tối thượng</span>'}</div><div class="xp-bar"><div class="xp-fill" style="width:${prog}%;background:${rk.c}"></div></div>${nxt?`<div class="xp-next">${xp.toLocaleString()} / ${nxt.x.toLocaleString()} XP</div>`:''}</div>`;
+  document.getElementById('pHeroArea').innerHTML=`<div class="av-wrap" onclick="document.getElementById('avInput').click()"><div class="av-ring" style="--p:${prog*3.6}deg"><div class="av-inner" style="background:${rk.c}">${avH}</div></div><div class="av-edit-ico">✏️</div></div><div class="av-hint">Nhấn vào avatar để đổi ảnh (tối đa 10MB)</div><div class="p-name">${name}</div><div class="p-rnk" style="color:${rk.c}">${rk.i} ${rk.n}</div><div class="p-xpt">${xp.toLocaleString()} XP</div><div class="xp-bw"><div class="xp-labels"><span>${rk.n}</span>${nxt?`<span>${nxt.n}</span>`:'<span>🏆 Tối thượng</span>'}</div><div class="xp-bar"><div class="xp-fill" style="width:${prog}%;background:${rk.c}"></div></div>${nxt?`<div class="xp-next">${xp.toLocaleString()} / ${nxt.x.toLocaleString()} XP</div>`:''}</div>`;
 }
 function renderRankRoad(){if(!_ud)return;const xp=_ud.xp||0;const ci=RANKS.findLastIndex(r=>xp>=r.x);let h='';RANKS.forEach((r,i)=>{const done=i<ci,cur=i===ci;if(i>0)h+=`<div class="rk-line ${done?'done':''}"></div>`;h+=`<div class="rk-node"><div class="rk-circle ${done?'done':''} ${cur?'cur':''}" style="${done||cur?`background:${r.c};color:#fff;border-color:${r.c}`:''}">${r.i}</div><div class="rk-lbl ${done?'done':''} ${cur?'cur':''}">${r.n}</div></div>`;});document.getElementById('rankRoad').innerHTML=h;setTimeout(()=>{const ns=document.querySelectorAll('.rk-node');if(ns[ci])ns[ci].scrollIntoView({inline:'center',behavior:'smooth'});},300);}
 function renderPStats(){if(!_ud)return;const rc=_ud.readChapters||{};const tot=Object.values(rc).reduce((a,v)=>a+v.length,0);const bm=(_ud.bookmarks||[]).length;const streak=_ud.loginStreak||1;document.getElementById('statsGrid').outerHTML=`<div class="sg" id="statsGrid"><div class="sc"><div class="sc-n">${tot}</div><div class="sc-l">Chương đọc</div></div><div class="sc"><div class="sc-n">${bm}</div><div class="sc-l">Đã lưu</div></div><div class="sc"><div class="sc-n">${streak}🔥</div><div class="sc-l">Ngày liên tiếp</div></div></div>`;}
@@ -866,18 +866,29 @@ function renderPDone(){const cp=_ud?.completedStories||[],el=document.getElement
 window.pTab=key=>{document.querySelectorAll('.p-tab').forEach((t,i)=>{t.classList.toggle('on',['Bm','Hist','Done'][i]===key);});['pTabBm','pTabHist','pTabDone'].forEach(id=>{document.getElementById(id).style.display=id===`pTab${key}`?'':'none';});};
 
 window.pSaveName=async()=>{
-  const n=document.getElementById('pNameInput').value.trim();if(!n)return;
+  const n=document.getElementById('pNameInput').value.trim();if(!n||!_user)return;
   const btn=document.getElementById('pSaveBtn');btn.disabled=true;btn.textContent='...';
-  try{await updateDoc(doc(db,'users',_user.uid),{displayName:n});await updateProfile(_user,{displayName:n});if(_ud)_ud.displayName=n;fillSB();renderPHero();showToast('✓ Đã lưu');}
-  catch(e){showToast('❌ Lỗi khi lưu');}btn.disabled=false;btn.textContent='Lưu';
+  try{
+    await setDoc(doc(db,'users',_user.uid),{displayName:n,email:_user.email||'',updatedAt:Date.now()},{merge:true});
+    try{await updateProfile(_user,{displayName:n});}catch(e){console.warn('auth profile name update error',e);}
+    if(_ud)_ud.displayName=n;fillSB();renderPHero();showToast('✓ Đã lưu tên');
+  }catch(e){console.warn('display name save error',e);showToast('❌ Lỗi khi lưu: '+(e.code||e.message||''));}
+  btn.disabled=false;btn.textContent='Lưu';
 };
 
 document.getElementById('avInput').addEventListener('change',async e=>{
   const file=e.target.files?.[0];if(!file)return;
-  if(file.size>5*1024*1024){showToast('❌ Ảnh phải nhỏ hơn 5MB');return;}
-  showToast('⏳ Đang upload...');
-  try{const ext=file.name.split('.').pop()||'png';const r2=sref(storage,`avatars/${_user.uid}.${ext}`);await uploadBytes(r2,file,{contentType:file.type});const url=await getDownloadURL(r2);await updateDoc(doc(db,'users',_user.uid),{avatarUrl:url});await updateProfile(_user,{photoURL:url});if(_ud)_ud.avatarUrl=url;fillSB();renderPHero();showToast('✓ Đã cập nhật ảnh');}
-  catch(e){showToast('❌ Lỗi: '+e.message);}e.target.value='';
+  if(file.size>10*1024*1024){showToast('❌ Ảnh phải nhỏ hơn 10MB');return;}
+  showToast('⏳ Đang upload ảnh...');
+  try{
+    const ext=file.name.split('.').pop()||'png';const r2=sref(storage,`avatars/${_user.uid}.${ext}`);
+    await uploadBytes(r2,file,{contentType:file.type});
+    const url=await getDownloadURL(r2);
+    await setDoc(doc(db,'users',_user.uid),{avatarUrl:url,email:_user.email||'',updatedAt:Date.now()},{merge:true});
+    try{await updateProfile(_user,{photoURL:url});}catch(e){console.warn('auth profile photo update error',e);}
+    if(_ud)_ud.avatarUrl=url;fillSB();renderPHero();showToast('✓ Đã cập nhật ảnh');
+  }
+  catch(e){console.warn('avatar upload error',e);showToast('❌ Lỗi: '+(e.code||e.message||''));}e.target.value='';
 });
 </script>
 </body>
