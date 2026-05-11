@@ -273,13 +273,18 @@ body:not(.in-reader) #rdPbar,body:not(.in-reader) #rdNav{display:none!important}
 
 /* ════ PROFILE ════ */
 .phero{background:var(--sf);border-bottom:1px solid var(--bd)}
-.phero-in{max-width:720px;margin:0 auto;padding:22px 14px 16px;display:flex;flex-direction:column;align-items:center}
-.av-wrap{position:relative;cursor:pointer;margin-bottom:10px}
-.av-ring{width:90px;height:90px;border-radius:50%;padding:3px;background:conic-gradient(var(--ac) var(--p,0%), var(--bd) 0%)}
-.av-inner{width:100%;height:100%;border-radius:50%;overflow:hidden;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;position:relative}
+.phero-in{max-width:720px;margin:0 auto;padding:28px 14px 18px;display:flex;flex-direction:column;align-items:center}
+.av-wrap{position:relative;cursor:pointer;margin-bottom:12px;isolation:isolate}
+.av-wrap::before{content:'';position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 14%,var(--rk,var(--ac)) 24%,#FFD66B 34%,transparent 46% 58%,var(--rk,var(--ac)) 72%,#FFF1A8 82%,transparent 92%);filter:blur(.5px);animation:avSpin 5s linear infinite;z-index:-1}
+.av-wrap::after{content:'';position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,rgba(255,214,107,.22),transparent 58%);animation:avPulse 2.8s ease-in-out infinite;z-index:-2}
+.av-ring{width:124px;height:124px;border-radius:50%;padding:4px;background:conic-gradient(var(--rk,var(--ac)) var(--p,0%), var(--bd) 0%);box-shadow:0 0 0 1px rgba(255,255,255,.08) inset,0 10px 28px rgba(0,0,0,.18)}
+.av-inner{width:100%;height:100%;border-radius:50%;overflow:hidden;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:2.55rem;font-weight:800;color:#fff;position:relative}
 .av-inner img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.av-edit-ico{position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:var(--ac);color:#fff;font-size:.78rem;display:flex;align-items:center;justify-content:center;border:2px solid var(--sf)}
-.av-hint{font-size:.68rem;color:var(--tx3);margin-bottom:10px}
+.av-edit-ico{position:absolute;bottom:4px;right:4px;width:34px;height:34px;border-radius:50%;background:var(--ac);color:#fff;font-size:.95rem;display:flex;align-items:center;justify-content:center;border:3px solid var(--sf);box-shadow:var(--sh)}
+.av-hint{font-size:.72rem;color:var(--tx3);margin-bottom:10px}
+@keyframes avSpin{to{transform:rotate(360deg)}}
+@keyframes avPulse{0%,100%{opacity:.5;transform:scale(.95)}50%{opacity:1;transform:scale(1.05)}}
+@media (prefers-reduced-motion:reduce){.av-wrap::before,.av-wrap::after{animation:none}}
 .p-name{font-family:var(--dp);font-size:1.2rem;font-weight:800;margin-bottom:3px}
 .p-rnk{font-size:.8rem;font-weight:700;margin-bottom:4px}.p-xpt{font-size:.7rem;color:var(--tx2);margin-bottom:12px}
 .xp-bw{width:100%;max-width:280px}
@@ -637,12 +642,21 @@ const RANKS=[{n:'Phàm Nhân',x:0,c:'#9A8F80',i:'🧑'},{n:'Luyện Khí',x:100,
 function getRank(xp){let r=RANKS[0];for(const x of RANKS){if(xp>=x.x)r=x;else break;}return r;}
 function getXpProg(xp){const i=RANKS.findLastIndex(r=>xp>=r.x);const c=RANKS[i],n=RANKS[i+1];if(!n)return 100;return Math.round((xp-c.x)/(n.x-c.x)*100);}
 
-let _user=null,_ud=null,_stories=[],_curStory=null,_curCh=null;
+let _user=null,_ud=null,_stories=[],_storiesLoaded=false,_curStory=null,_curCh=null;
+
+function fallbackUserData(user){
+  const email=user?.email||'';
+  return {
+    displayName:user?.displayName||email.split('@')[0]||'Bạn đọc',
+    email,avatarUrl:user?.photoURL||'',xp:0,loginStreak:1,
+    bookmarks:[],history:[],readChapters:{},completedStories:[]
+  };
+}
 
 async function ensureUser(user){
   const ref=doc(db,'users',user.uid);const snap=await getDoc(ref);const today=new Date().toDateString();
-  if(!snap.exists()){const d={displayName:user.displayName||user.email.split('@')[0],email:user.email,avatarUrl:user.photoURL||'',xp:10,createdAt:Date.now(),lastLoginDate:today,loginStreak:1,bookmarks:[],history:[],readChapters:{},completedStories:[]};await setDoc(ref,d);return d;}
-  const d=snap.data();if(d.lastLoginDate!==today){const xp=(d.xp||0)+10;await updateDoc(ref,{lastLoginDate:today,xp,loginStreak:(d.loginStreak||0)+1});return{...d,xp};}return d;
+  if(!snap.exists()){const d={...fallbackUserData(user),xp:10,createdAt:Date.now(),lastLoginDate:today};await setDoc(ref,d);return d;}
+  const d={...fallbackUserData(user),...snap.data()};if(d.lastLoginDate!==today){const xp=(d.xp||0)+10;await updateDoc(ref,{lastLoginDate:today,xp,loginStreak:(d.loginStreak||0)+1});return{...d,xp};}return d;
 }
 
 function fillSB(){
@@ -702,9 +716,10 @@ window.addEventListener('hashchange',()=>{if(_user!==undefined)route();});
 onAuthStateChanged(auth,async user=>{
   _user=user;
   if(user){
-    try{_ud=await ensureUser(user);fillSB();}
-    catch(e){console.warn('user doc error',e);}
-  }
+    try{_ud=await ensureUser(user);}
+    catch(e){console.warn('user doc error',e);_ud=fallbackUserData(user);}
+    fillSB();
+  }else _ud=null;
   hideLoader();
   route();
 });
@@ -732,8 +747,17 @@ function renderLoginHdr(){document.getElementById('hdrIn').innerHTML='';}
 
 /* ── STORIES ── */
 async function loadStories(){
-  if(_stories.length)return;
-  const r=await fetch('stories/stories.json');_stories=await r.json();
+  if(_storiesLoaded)return _stories;
+  try{
+    const r=await fetch('stories/stories.json');
+    if(!r.ok)throw new Error('stories.json '+r.status);
+    _stories=await r.json();
+  }catch(e){
+    console.warn('stories load error',e);
+    _stories=[];
+  }
+  _storiesLoaded=true;
+  return _stories;
 }
 
 /* ══ HOME ══ */
@@ -823,39 +847,53 @@ function showXpToast(xp,isComplete){const t=document.getElementById('xpToast');t
 /* ══ PROFILE ══ */
 async function renderProfile(){
   document.getElementById('hdrIn').innerHTML=`<button class="ham" onclick="openSB()">☰</button><button class="hdr-back" onclick="nav('home')">←</button><div class="hdr-t">Hồ sơ cá nhân</div><div class="hdr-r"><button class="ibtn" id="themeBtn" onclick="toggleTheme()">🌙</button></div>`;applyS();
+  if(!_ud&&_user)_ud=fallbackUserData(_user);
   if(_ud)document.getElementById('pNameInput').value=_ud.displayName||'';
-  await loadStories();
   renderPHero();renderRankRoad();renderPStats();renderPBm();renderPHist();renderPDone();
+  await loadStories();
+  renderPBm();renderPHist();renderPDone();
 }
 function renderPHero(){
   if(!_ud||!_user)return;const xp=_ud.xp||0,rk=getRank(xp),nxt=RANKS[RANKS.findLastIndex(r=>xp>=r.x)+1]||null,prog=getXpProg(xp);
   const name=_ud.displayName||_user.email?.split('@')[0]||'?';const ini=name[0].toUpperCase();
   const avH=_ud.avatarUrl?`<img src="${_ud.avatarUrl}" onerror="this.style.display='none'"><span style="position:absolute">${ini}</span>`:ini;
-  document.getElementById('pHeroArea').innerHTML=`<div class="av-wrap" onclick="document.getElementById('avInput').click()"><div class="av-ring" style="--p:${prog*3.6}deg"><div class="av-inner" style="background:${rk.c}">${avH}</div></div><div class="av-edit-ico">✏️</div></div><div class="av-hint">Nhấn để đổi ảnh (png/jpg/gif/webp)</div><div class="p-name">${name}</div><div class="p-rnk" style="color:${rk.c}">${rk.i} ${rk.n}</div><div class="p-xpt">${xp.toLocaleString()} XP</div><div class="xp-bw"><div class="xp-labels"><span>${rk.n}</span>${nxt?`<span>${nxt.n}</span>`:'<span>🏆 Tối thượng</span>'}</div><div class="xp-bar"><div class="xp-fill" style="width:${prog}%;background:${rk.c}"></div></div>${nxt?`<div class="xp-next">${xp.toLocaleString()} / ${nxt.x.toLocaleString()} XP</div>`:''}</div>`;
+  document.getElementById('pHeroArea').innerHTML=`<div class="av-wrap" style="--rk:${rk.c}" onclick="document.getElementById('avInput').click()"><div class="av-ring" style="--p:${prog*3.6}deg"><div class="av-inner" style="background:${rk.c}">${avH}</div></div><div class="av-edit-ico">✏️</div></div><div class="av-hint">Nhấn vào avatar để đổi ảnh (tối đa 10MB)</div><div class="p-name">${name}</div><div class="p-rnk" style="color:${rk.c}">${rk.i} ${rk.n}</div><div class="p-xpt">${xp.toLocaleString()} XP</div><div class="xp-bw"><div class="xp-labels"><span>${rk.n}</span>${nxt?`<span>${nxt.n}</span>`:'<span>🏆 Tối thượng</span>'}</div><div class="xp-bar"><div class="xp-fill" style="width:${prog}%;background:${rk.c}"></div></div>${nxt?`<div class="xp-next">${xp.toLocaleString()} / ${nxt.x.toLocaleString()} XP</div>`:''}</div>`;
 }
 function renderRankRoad(){if(!_ud)return;const xp=_ud.xp||0;const ci=RANKS.findLastIndex(r=>xp>=r.x);let h='';RANKS.forEach((r,i)=>{const done=i<ci,cur=i===ci;if(i>0)h+=`<div class="rk-line ${done?'done':''}"></div>`;h+=`<div class="rk-node"><div class="rk-circle ${done?'done':''} ${cur?'cur':''}" style="${done||cur?`background:${r.c};color:#fff;border-color:${r.c}`:''}">${r.i}</div><div class="rk-lbl ${done?'done':''} ${cur?'cur':''}">${r.n}</div></div>`;});document.getElementById('rankRoad').innerHTML=h;setTimeout(()=>{const ns=document.querySelectorAll('.rk-node');if(ns[ci])ns[ci].scrollIntoView({inline:'center',behavior:'smooth'});},300);}
 function renderPStats(){if(!_ud)return;const rc=_ud.readChapters||{};const tot=Object.values(rc).reduce((a,v)=>a+v.length,0);const bm=(_ud.bookmarks||[]).length;const streak=_ud.loginStreak||1;document.getElementById('statsGrid').outerHTML=`<div class="sg" id="statsGrid"><div class="sc"><div class="sc-n">${tot}</div><div class="sc-l">Chương đọc</div></div><div class="sc"><div class="sc-n">${bm}</div><div class="sc-l">Đã lưu</div></div><div class="sc"><div class="sc-n">${streak}🔥</div><div class="sc-l">Ngày liên tiếp</div></div></div>`;}
 function sCard(s,sub,time){return `<div class="sli" onclick="nav('story?id=${s.id}')"><div class="sli-cov">${cH(s)}<span>${s.emoji||'📚'}</span></div><div class="sli-b"><div class="sli-t">${s.title}</div><div class="sli-s">${sub}</div></div>${time?`<div class="sli-tm">${time}</div>`:''}</div>`;}
 function emptyEl(ico,txt){return`<div class="empty"><span>${ico}</span>${txt}</div>`;}
-function renderPBm(){const bms=_ud?.bookmarks||[];const el=document.getElementById('pTabBm');el.innerHTML=bms.length?bms.map(id=>{const s=_stories.find(x=>x.id===id);return s?sCard(s,s.author+' · '+(s.chapters?.length||0)+' chương',''):''}).filter(Boolean).join(''):emptyEl('📚','Chưa lưu truyện nào');}
-function renderPHist(){const h=(_ud?.history||[]).slice(0,30);const el=document.getElementById('pTabHist');if(!h.length){el.innerHTML=emptyEl('🕑','Chưa có lịch sử đọc');return;}const seen=new Set();el.innerHTML=h.filter(x=>{if(seen.has(x.storyId))return false;seen.add(x.storyId);return true;}).map(x=>{const s=_stories.find(y=>y.id===x.storyId);if(!s)return '';const d=new Date(x.ts).toLocaleDateString('vi-VN',{day:'numeric',month:'numeric'});return sCard(s,'Ch.'+x.chNum,d);}).filter(Boolean).join('');}
-function renderPDone(){const cp=_ud?.completedStories||[];const el=document.getElementById('pTabDone');el.innerHTML=cp.length?cp.map(id=>{const s=_stories.find(x=>x.id===id);return s?sCard(s,'🎉 Đã đọc hết',''):''}).filter(Boolean).join(''):emptyEl('✅','Chưa hoàn thành truyện nào');}
+function storyMap(){return new Map(_stories.map(s=>[s.id,s]));}
+function renderPBm(){const bms=_ud?.bookmarks||[],el=document.getElementById('pTabBm'),sm=storyMap();if(!bms.length){el.innerHTML=emptyEl('📚','Chưa lưu truyện nào');return;}const html=bms.map(id=>{const s=sm.get(id);return s?sCard(s,s.author+' · '+(s.chapters?.length||0)+' chương',''):'';}).filter(Boolean).join('');el.innerHTML=html||emptyEl('📚','Chưa tải được dữ liệu truyện đã lưu');}
+function renderPHist(){const h=(_ud?.history||[]).slice(0,30),el=document.getElementById('pTabHist'),sm=storyMap();if(!h.length){el.innerHTML=emptyEl('🕑','Chưa có lịch sử đọc');return;}const seen=new Set();const html=h.filter(x=>{if(seen.has(x.storyId))return false;seen.add(x.storyId);return true;}).map(x=>{const s=sm.get(x.storyId);if(!s)return '';const d=new Date(x.ts).toLocaleDateString('vi-VN',{day:'numeric',month:'numeric'});return sCard(s,'Ch.'+x.chNum,d);}).filter(Boolean).join('');el.innerHTML=html||emptyEl('🕑','Chưa tải được lịch sử đọc');}
+function renderPDone(){const cp=_ud?.completedStories||[],el=document.getElementById('pTabDone'),sm=storyMap();if(!cp.length){el.innerHTML=emptyEl('✅','Chưa hoàn thành truyện nào');return;}const html=cp.map(id=>{const s=sm.get(id);return s?sCard(s,'🎉 Đã đọc hết',''):'';}).filter(Boolean).join('');el.innerHTML=html||emptyEl('✅','Chưa tải được truyện đã hoàn thành');}
 
 window.pTab=key=>{document.querySelectorAll('.p-tab').forEach((t,i)=>{t.classList.toggle('on',['Bm','Hist','Done'][i]===key);});['pTabBm','pTabHist','pTabDone'].forEach(id=>{document.getElementById(id).style.display=id===`pTab${key}`?'':'none';});};
 
 window.pSaveName=async()=>{
-  const n=document.getElementById('pNameInput').value.trim();if(!n)return;
+  const n=document.getElementById('pNameInput').value.trim();if(!n||!_user)return;
   const btn=document.getElementById('pSaveBtn');btn.disabled=true;btn.textContent='...';
-  try{await updateDoc(doc(db,'users',_user.uid),{displayName:n});await updateProfile(_user,{displayName:n});if(_ud)_ud.displayName=n;fillSB();renderPHero();showToast('✓ Đã lưu');}
-  catch(e){showToast('❌ Lỗi khi lưu');}btn.disabled=false;btn.textContent='Lưu';
+  try{
+    await setDoc(doc(db,'users',_user.uid),{displayName:n,email:_user.email||'',updatedAt:Date.now()},{merge:true});
+    try{await updateProfile(_user,{displayName:n});}catch(e){console.warn('auth profile name update error',e);}
+    if(_ud)_ud.displayName=n;fillSB();renderPHero();showToast('✓ Đã lưu tên');
+  }catch(e){console.warn('display name save error',e);showToast('❌ Lỗi khi lưu: '+(e.code||e.message||''));}
+  btn.disabled=false;btn.textContent='Lưu';
 };
 
 document.getElementById('avInput').addEventListener('change',async e=>{
   const file=e.target.files?.[0];if(!file)return;
-  if(file.size>5*1024*1024){showToast('❌ Ảnh phải nhỏ hơn 5MB');return;}
-  showToast('⏳ Đang upload...');
-  try{const ext=file.name.split('.').pop()||'png';const r2=sref(storage,`avatars/${_user.uid}.${ext}`);await uploadBytes(r2,file,{contentType:file.type});const url=await getDownloadURL(r2);await updateDoc(doc(db,'users',_user.uid),{avatarUrl:url});await updateProfile(_user,{photoURL:url});if(_ud)_ud.avatarUrl=url;fillSB();renderPHero();showToast('✓ Đã cập nhật ảnh');}
-  catch(e){showToast('❌ Lỗi: '+e.message);}e.target.value='';
+  if(file.size>10*1024*1024){showToast('❌ Ảnh phải nhỏ hơn 10MB');return;}
+  showToast('⏳ Đang upload ảnh...');
+  try{
+    const ext=file.name.split('.').pop()||'png';const r2=sref(storage,`avatars/${_user.uid}.${ext}`);
+    await uploadBytes(r2,file,{contentType:file.type});
+    const url=await getDownloadURL(r2);
+    await setDoc(doc(db,'users',_user.uid),{avatarUrl:url,email:_user.email||'',updatedAt:Date.now()},{merge:true});
+    try{await updateProfile(_user,{photoURL:url});}catch(e){console.warn('auth profile photo update error',e);}
+    if(_ud)_ud.avatarUrl=url;fillSB();renderPHero();showToast('✓ Đã cập nhật ảnh');
+  }
+  catch(e){console.warn('avatar upload error',e);showToast('❌ Lỗi: '+(e.code||e.message||''));}e.target.value='';
 });
 </script>
 </body>
