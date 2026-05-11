@@ -637,12 +637,21 @@ const RANKS=[{n:'Phàm Nhân',x:0,c:'#9A8F80',i:'🧑'},{n:'Luyện Khí',x:100,
 function getRank(xp){let r=RANKS[0];for(const x of RANKS){if(xp>=x.x)r=x;else break;}return r;}
 function getXpProg(xp){const i=RANKS.findLastIndex(r=>xp>=r.x);const c=RANKS[i],n=RANKS[i+1];if(!n)return 100;return Math.round((xp-c.x)/(n.x-c.x)*100);}
 
-let _user=null,_ud=null,_stories=[],_curStory=null,_curCh=null;
+let _user=null,_ud=null,_stories=[],_storiesLoaded=false,_curStory=null,_curCh=null;
+
+function fallbackUserData(user){
+  const email=user?.email||'';
+  return {
+    displayName:user?.displayName||email.split('@')[0]||'Bạn đọc',
+    email,avatarUrl:user?.photoURL||'',xp:0,loginStreak:1,
+    bookmarks:[],history:[],readChapters:{},completedStories:[]
+  };
+}
 
 async function ensureUser(user){
   const ref=doc(db,'users',user.uid);const snap=await getDoc(ref);const today=new Date().toDateString();
-  if(!snap.exists()){const d={displayName:user.displayName||user.email.split('@')[0],email:user.email,avatarUrl:user.photoURL||'',xp:10,createdAt:Date.now(),lastLoginDate:today,loginStreak:1,bookmarks:[],history:[],readChapters:{},completedStories:[]};await setDoc(ref,d);return d;}
-  const d=snap.data();if(d.lastLoginDate!==today){const xp=(d.xp||0)+10;await updateDoc(ref,{lastLoginDate:today,xp,loginStreak:(d.loginStreak||0)+1});return{...d,xp};}return d;
+  if(!snap.exists()){const d={...fallbackUserData(user),xp:10,createdAt:Date.now(),lastLoginDate:today};await setDoc(ref,d);return d;}
+  const d={...fallbackUserData(user),...snap.data()};if(d.lastLoginDate!==today){const xp=(d.xp||0)+10;await updateDoc(ref,{lastLoginDate:today,xp,loginStreak:(d.loginStreak||0)+1});return{...d,xp};}return d;
 }
 
 function fillSB(){
@@ -702,9 +711,10 @@ window.addEventListener('hashchange',()=>{if(_user!==undefined)route();});
 onAuthStateChanged(auth,async user=>{
   _user=user;
   if(user){
-    try{_ud=await ensureUser(user);fillSB();}
-    catch(e){console.warn('user doc error',e);}
-  }
+    try{_ud=await ensureUser(user);}
+    catch(e){console.warn('user doc error',e);_ud=fallbackUserData(user);}
+    fillSB();
+  }else _ud=null;
   hideLoader();
   route();
 });
@@ -732,8 +742,17 @@ function renderLoginHdr(){document.getElementById('hdrIn').innerHTML='';}
 
 /* ── STORIES ── */
 async function loadStories(){
-  if(_stories.length)return;
-  const r=await fetch('stories/stories.json');_stories=await r.json();
+  if(_storiesLoaded)return _stories;
+  try{
+    const r=await fetch('stories/stories.json');
+    if(!r.ok)throw new Error('stories.json '+r.status);
+    _stories=await r.json();
+  }catch(e){
+    console.warn('stories load error',e);
+    _stories=[];
+  }
+  _storiesLoaded=true;
+  return _stories;
 }
 
 /* ══ HOME ══ */
@@ -823,9 +842,11 @@ function showXpToast(xp,isComplete){const t=document.getElementById('xpToast');t
 /* ══ PROFILE ══ */
 async function renderProfile(){
   document.getElementById('hdrIn').innerHTML=`<button class="ham" onclick="openSB()">☰</button><button class="hdr-back" onclick="nav('home')">←</button><div class="hdr-t">Hồ sơ cá nhân</div><div class="hdr-r"><button class="ibtn" id="themeBtn" onclick="toggleTheme()">🌙</button></div>`;applyS();
+  if(!_ud&&_user)_ud=fallbackUserData(_user);
   if(_ud)document.getElementById('pNameInput').value=_ud.displayName||'';
-  await loadStories();
   renderPHero();renderRankRoad();renderPStats();renderPBm();renderPHist();renderPDone();
+  await loadStories();
+  renderPBm();renderPHist();renderPDone();
 }
 function renderPHero(){
   if(!_ud||!_user)return;const xp=_ud.xp||0,rk=getRank(xp),nxt=RANKS[RANKS.findLastIndex(r=>xp>=r.x)+1]||null,prog=getXpProg(xp);
@@ -837,9 +858,10 @@ function renderRankRoad(){if(!_ud)return;const xp=_ud.xp||0;const ci=RANKS.findL
 function renderPStats(){if(!_ud)return;const rc=_ud.readChapters||{};const tot=Object.values(rc).reduce((a,v)=>a+v.length,0);const bm=(_ud.bookmarks||[]).length;const streak=_ud.loginStreak||1;document.getElementById('statsGrid').outerHTML=`<div class="sg" id="statsGrid"><div class="sc"><div class="sc-n">${tot}</div><div class="sc-l">Chương đọc</div></div><div class="sc"><div class="sc-n">${bm}</div><div class="sc-l">Đã lưu</div></div><div class="sc"><div class="sc-n">${streak}🔥</div><div class="sc-l">Ngày liên tiếp</div></div></div>`;}
 function sCard(s,sub,time){return `<div class="sli" onclick="nav('story?id=${s.id}')"><div class="sli-cov">${cH(s)}<span>${s.emoji||'📚'}</span></div><div class="sli-b"><div class="sli-t">${s.title}</div><div class="sli-s">${sub}</div></div>${time?`<div class="sli-tm">${time}</div>`:''}</div>`;}
 function emptyEl(ico,txt){return`<div class="empty"><span>${ico}</span>${txt}</div>`;}
-function renderPBm(){const bms=_ud?.bookmarks||[];const el=document.getElementById('pTabBm');el.innerHTML=bms.length?bms.map(id=>{const s=_stories.find(x=>x.id===id);return s?sCard(s,s.author+' · '+(s.chapters?.length||0)+' chương',''):''}).filter(Boolean).join(''):emptyEl('📚','Chưa lưu truyện nào');}
-function renderPHist(){const h=(_ud?.history||[]).slice(0,30);const el=document.getElementById('pTabHist');if(!h.length){el.innerHTML=emptyEl('🕑','Chưa có lịch sử đọc');return;}const seen=new Set();el.innerHTML=h.filter(x=>{if(seen.has(x.storyId))return false;seen.add(x.storyId);return true;}).map(x=>{const s=_stories.find(y=>y.id===x.storyId);if(!s)return '';const d=new Date(x.ts).toLocaleDateString('vi-VN',{day:'numeric',month:'numeric'});return sCard(s,'Ch.'+x.chNum,d);}).filter(Boolean).join('');}
-function renderPDone(){const cp=_ud?.completedStories||[];const el=document.getElementById('pTabDone');el.innerHTML=cp.length?cp.map(id=>{const s=_stories.find(x=>x.id===id);return s?sCard(s,'🎉 Đã đọc hết',''):''}).filter(Boolean).join(''):emptyEl('✅','Chưa hoàn thành truyện nào');}
+function storyMap(){return new Map(_stories.map(s=>[s.id,s]));}
+function renderPBm(){const bms=_ud?.bookmarks||[],el=document.getElementById('pTabBm'),sm=storyMap();if(!bms.length){el.innerHTML=emptyEl('📚','Chưa lưu truyện nào');return;}const html=bms.map(id=>{const s=sm.get(id);return s?sCard(s,s.author+' · '+(s.chapters?.length||0)+' chương',''):'';}).filter(Boolean).join('');el.innerHTML=html||emptyEl('📚','Chưa tải được dữ liệu truyện đã lưu');}
+function renderPHist(){const h=(_ud?.history||[]).slice(0,30),el=document.getElementById('pTabHist'),sm=storyMap();if(!h.length){el.innerHTML=emptyEl('🕑','Chưa có lịch sử đọc');return;}const seen=new Set();const html=h.filter(x=>{if(seen.has(x.storyId))return false;seen.add(x.storyId);return true;}).map(x=>{const s=sm.get(x.storyId);if(!s)return '';const d=new Date(x.ts).toLocaleDateString('vi-VN',{day:'numeric',month:'numeric'});return sCard(s,'Ch.'+x.chNum,d);}).filter(Boolean).join('');el.innerHTML=html||emptyEl('🕑','Chưa tải được lịch sử đọc');}
+function renderPDone(){const cp=_ud?.completedStories||[],el=document.getElementById('pTabDone'),sm=storyMap();if(!cp.length){el.innerHTML=emptyEl('✅','Chưa hoàn thành truyện nào');return;}const html=cp.map(id=>{const s=sm.get(id);return s?sCard(s,'🎉 Đã đọc hết',''):'';}).filter(Boolean).join('');el.innerHTML=html||emptyEl('✅','Chưa tải được truyện đã hoàn thành');}
 
 window.pTab=key=>{document.querySelectorAll('.p-tab').forEach((t,i)=>{t.classList.toggle('on',['Bm','Hist','Done'][i]===key);});['pTabBm','pTabHist','pTabDone'].forEach(id=>{document.getElementById(id).style.display=id===`pTab${key}`?'':'none';});};
 
